@@ -1,6 +1,8 @@
 # 🍽️ BookTable - Restaurant Reservation System
 
-![BookTable Banner](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/frontend/public/booktable-banner.jpg)
+<div align="center">
+  <img src="https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/frontend/public/Restaurant%20image.jpg" alt="BookTable Banner" width="100%">
+</div>
 
 ## Project Overview
 
