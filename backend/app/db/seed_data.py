@@ -2,7 +2,7 @@ from app.db.database import engine
 from app.db import models
 models.Base.metadata.create_all(bind=engine)
 from app.db import models, database
-from app.auth.auth_handler import hash_password  # ✅ Correct import
+from app.auth.auth_handler import hash_password  
 from sqlalchemy.orm import Session
 
 def seed_restaurants_tables_reviews():

@@ -1,4 +1,3 @@
-// src/pages/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { getDashboardAnalytics, getPendingRestaurants, approveRestaurant, removeRestaurant } from '../api';
 

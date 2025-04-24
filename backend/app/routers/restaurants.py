@@ -7,7 +7,7 @@ from app.auth.auth_dependency import get_current_user
 from app.db.models import User
 from app.models_api.restaurant import RestaurantCreate
 from app.models_api.reservation import ReservationCreate
-from app.utils.email_utils import send_booking_confirmation  # ✅ SendGrid email
+from app.utils.email_utils import send_booking_confirmation  
 
 router = APIRouter(
     prefix="/restaurants",
@@ -274,3 +274,52 @@ def cancel_booking(
 
     return {"message": "❌ Reservation cancelled successfully."}
 
+# Add review endpoint
+@router.post("/{restaurant_id}/reviews")
+def add_review(
+    restaurant_id: int,
+    rating: int,
+    comment: str = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if current_user.role != "Customer":
+        raise HTTPException(status_code=403, detail="Only customers can add reviews.")
+    
+    restaurant = db.query(models.Restaurant).filter(models.Restaurant.id == restaurant_id).first()
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restaurant not found.")
+    
+    # Check if user has already reviewed this restaurant
+    existing_review = db.query(models.Review).filter(
+        models.Review.user_id == current_user.id,
+        models.Review.restaurant_id == restaurant_id
+    ).first()
+    
+    if existing_review:
+        raise HTTPException(status_code=400, detail="You have already reviewed this restaurant.")
+    
+    # Create new review
+    new_review = models.Review(
+        user_id=current_user.id,
+        restaurant_id=restaurant_id,
+        rating=rating,
+        comment=comment
+    )
+    
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+    
+    # Update restaurant rating
+    all_reviews = db.query(models.Review).filter(
+        models.Review.restaurant_id == restaurant_id
+    ).all()
+    
+    total_rating = sum(review.rating for review in all_reviews)
+    avg_rating = total_rating / len(all_reviews)
+    
+    restaurant.rating = round(avg_rating, 1)
+    db.commit()
+    
+    return {"message": "Review added successfully"}

@@ -1,4 +1,3 @@
-// src/pages/Booking.js
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { bookTable, cancelBooking } from '../api';

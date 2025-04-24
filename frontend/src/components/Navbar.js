@@ -1,4 +1,3 @@
-// src/components/Navbar.js
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
@@ -9,7 +8,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/');
+        navigate('/login');
     };
 
     return (
@@ -19,12 +18,23 @@ const Navbar = () => {
                 <Link to="/">Home</Link>
                 {user ? (
                     <>
-                        {user.role === 'Customer' && <Link to="/booking">My Bookings</Link>}
-                        {user.role === 'RestaurantManager' && <Link to="/manager">Manager Panel</Link>}
-                        {user.role === 'Admin' && <Link to="/dashboard">Admin Dashboard</Link>}
+                        {user.role === 'Customer' && (
+                            <>
+                                <Link to="/my-reservations">My Reservations</Link>
+                            </>
+                        )}
+                        {user.role === 'RestaurantManager' && (
+                            <Link to="/manager">Manager Dashboard</Link>
+                        )}
+                        {user.role === 'Admin' && (
+                            <Link to="/admin">Admin Dashboard</Link>
+                        )}
+                        <span className="user-info">
+                            {user.full_name || user.email}
+                        </span>
                         <button
                             onClick={handleLogout}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
+                            className="logout-btn"
                         >
                             Logout
                         </button>

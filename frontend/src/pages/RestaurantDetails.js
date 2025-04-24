@@ -1,4 +1,3 @@
-// src/pages/RestaurantDetails.js
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getRestaurantDetails } from '../api';

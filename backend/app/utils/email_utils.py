@@ -1,5 +1,3 @@
-# app/utils/email_utils.py
-
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
