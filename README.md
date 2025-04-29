@@ -3,6 +3,7 @@
 <div align="center">
   <img src="https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/frontend/public/Restaurant%20image.jpg" alt="BookTable Banner" width="100%">
 </div>
+Image source: expedia.com
 
 ## Project Overview
 
