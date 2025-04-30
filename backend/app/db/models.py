@@ -32,9 +32,6 @@ class Restaurant(Base):
     tables = relationship("Table", back_populates="restaurant")
     reviews = relationship("Review", back_populates="restaurant")
 
-    photos = relationship("RestaurantPhoto", back_populates="restaurant")
-    approval_status = relationship("RestaurantApproval", back_populates="restaurant")
-
 
 # Table Model
 class Table(Base):
