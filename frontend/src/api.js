@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Update the baseURL to point to your FastAPI backend
 const instance = axios.create({
-    baseURL: 'http://localhost:8007', 
+    baseURL: 'http://localhost:8000',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -39,8 +39,9 @@ instance.interceptors.response.use(
 // Auth API functions
 export const login = async (credentials) => {
     try {
+        console.log('Logging in with credentials:', credentials.email);
         const response = await instance.post('/users/login', {
-            username: credentials.email, // FastAPI uses 'username' for the email field
+            email: credentials.email, // FastAPI uses 'username' for the email field
             password: credentials.password
         });
         return response.data;
@@ -96,9 +97,10 @@ export const getRestaurantReviews = async (restaurantId) => {
     }
 };
 
-export const bookTable = async (restaurantId, bookingData) => {
+export const bookTable = async (restaurantId) => {
     try {
-        const response = await instance.post(`/restaurants/${restaurantId}/book`, bookingData);
+        console.log(restaurantId)
+        const response = await instance.post(`/restaurants/${restaurantId.restaurantId}/book`, restaurantId);
         return response.data;
     } catch (error) {
         throw error;

@@ -123,6 +123,7 @@ def search_availability(
                         t_obj = datetime.strptime(t, "%H:%M").time()
                         if start_time <= t_obj <= end_time:
                             matching_restaurants.append({
+                                "restaurant_id": restaurant.id,
                                 "restaurant_name": restaurant.name,
                                 "table_id": table.id,
                                 "available_time": t,

@@ -19,7 +19,10 @@ const Dashboard = () => {
         const fetchPendingRestaurants = async () => {
             try {
                 const data = await getPendingRestaurants();
-                setPendingRestaurants(data.data);
+                if (data.data) {
+                    setPendingRestaurants(data.data);
+                }
+
             } catch (err) {
                 setError(err.message);
             }

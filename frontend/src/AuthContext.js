@@ -42,18 +42,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (credentials) => {
+  const login = async (data) => {
     try {
       setError(null);
-      const data = await apiLogin(credentials);
-      
+      //const data = await apiLogin(credentials);
+
       // Save token to localStorage
+      console.log('Login data:', data);
       localStorage.setItem('token', data.access_token);
-      
+
       // Get user data
       const userData = await getUserProfile();
       setUser(userData);
-      
+
       return userData;
     } catch (err) {
       setError(err.message);

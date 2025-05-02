@@ -6,12 +6,17 @@ const Booking = () => {
     const [searchParams] = useSearchParams();
     const restaurantId = searchParams.get('restaurantId');
     const selectedTime = searchParams.get('time');
+    const selectedDate = searchParams.get('date');
+    const selectedTable = searchParams.get('table_id');
+    const numberOfPeople = searchParams.get('people');
+
+
     const [confirmation, setConfirmation] = useState(null);
     const [error, setError] = useState(null);
 
     const handleBook = async () => {
         try {
-            const bookingData = { restaurantId, time: selectedTime };
+            const bookingData = { restaurantId, time: selectedTime, date: selectedDate, table_id: selectedTable, number_of_people: numberOfPeople };
             const response = await bookTable(bookingData);
             setConfirmation(response.message || 'Booking Confirmed!');
             setError(null);

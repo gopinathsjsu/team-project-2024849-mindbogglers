@@ -17,7 +17,7 @@ const Login = () => {
         e.preventDefault();
         try {
             const response = await loginUser(credentials);
-            login(response.data);
+            login(response);
             setError(null);
             navigate('/');
         } catch (err) {

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const Home = () => {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
-    
+
     // Create array of dates for the next 7 days
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -15,13 +15,13 @@ const Home = () => {
         const displayDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         dates.push({ value: formattedDate, label: displayDate });
     }
-    
+
     // Common reservation times
     const times = [
         '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
         '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
     ];
-    
+
     const [formData, setFormData] = useState({
         date: today,
         time: '19:00',
@@ -34,7 +34,7 @@ const Home = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showSearchForm, setShowSearchForm] = useState(false);
-    
+
     const handleChange = (e) => {
         console.log(`Field changed: ${e.target.name} = ${e.target.value}`);
         setFormData({
@@ -42,23 +42,26 @@ const Home = () => {
             [e.target.name]: e.target.value
         });
     };
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        
+
         try {
             console.log('Searching with params:', formData);
             const results = await getRestaurantAvailability(formData);
+            console.log(results)
             setRestaurants(results || []);
+            setError(null);
         } catch (err) {
             console.error('Search error:', err);
             setError(typeof err === 'object' ? err.message : err);
+            setRestaurants([]);
         } finally {
             setLoading(false);
         }
     };
-    
+
     // Background and container styles
     const pageStyle = {
         position: 'relative',
@@ -66,21 +69,21 @@ const Home = () => {
         overflow: 'auto',
         padding: '20px'
     };
-    
+
     const backgroundStyle = {
         position: 'fixed',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        backgroundImage: 'url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80")', 
+        backgroundImage: 'url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'blur(8px)',
         opacity: 0.3,
         zIndex: -1
     };
-    
+
     const heroContainerStyle = {
         display: 'flex',
         flexDirection: 'column',
@@ -90,7 +93,7 @@ const Home = () => {
         textAlign: 'center',
         padding: '40px 20px'
     };
-    
+
     const heroTitleStyle = {
         fontSize: '48px',
         fontWeight: 'bold',
@@ -98,14 +101,14 @@ const Home = () => {
         color: '#333',
         fontFamily: 'Georgia, serif'
     };
-    
+
     const heroSubtitleStyle = {
         fontSize: '24px',
         color: '#666',
         marginBottom: '40px',
         maxWidth: '700px'
     };
-    
+
     const buttonStyle = {
         padding: '15px 30px',
         backgroundColor: '#8B0000', // Dark red color for restaurant theme
@@ -117,7 +120,7 @@ const Home = () => {
         fontSize: '18px',
         transition: 'background-color 0.3s ease'
     };
-    
+
     const containerStyle = {
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderRadius: '10px',
@@ -127,18 +130,18 @@ const Home = () => {
         maxWidth: '800px',
         margin: '0 auto'
     };
-    
+
     const formGroupStyle = {
         marginBottom: '15px'
     };
-    
+
     const labelStyle = {
         display: 'block',
         marginBottom: '5px',
         fontWeight: 'bold',
         color: '#444'
     };
-    
+
     const inputStyle = {
         padding: '10px',
         width: '100%',
@@ -146,7 +149,7 @@ const Home = () => {
         border: '1px solid #ddd',
         boxSizing: 'border-box'
     };
-    
+
     const searchButtonStyle = {
         padding: '12px 20px',
         backgroundColor: '#8B0000', // Dark red color for restaurant theme
@@ -159,14 +162,14 @@ const Home = () => {
         fontSize: '16px',
         marginTop: '10px'
     };
-    
+
     const resultsContainerStyle = {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: '20px',
         marginTop: '30px'
     };
-    
+
     const cardStyle = {
         backgroundColor: 'white',
         border: '1px solid #ddd',
@@ -176,7 +179,7 @@ const Home = () => {
         transition: 'transform 0.3s ease',
         cursor: 'pointer'
     };
-    
+
     const bookButtonStyle = {
         display: 'inline-block',
         backgroundColor: '#8B0000',
@@ -188,20 +191,20 @@ const Home = () => {
         fontWeight: 'bold',
         textAlign: 'center'
     };
-    
+
     return (
         <div style={pageStyle}>
             <div style={backgroundStyle}></div>
-            
+
             {!showSearchForm ? (
                 <div style={heroContainerStyle}>
                     <h1 style={heroTitleStyle}>Welcome to BookTable</h1>
                     <p style={heroSubtitleStyle}>
-                        The easiest way to discover and reserve tables at your favorite restaurants. 
+                        The easiest way to discover and reserve tables at your favorite restaurants.
                         Find the perfect dining experience for any occasion.
                     </p>
-                    <button 
-                        style={buttonStyle} 
+                    <button
+                        style={buttonStyle}
                         onClick={() => setShowSearchForm(true)}
                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
@@ -213,12 +216,12 @@ const Home = () => {
                 <>
                     <div style={containerStyle}>
                         <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Find a Restaurant</h2>
-                        
+
                         <form onSubmit={handleSubmit}>
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>Date:</label>
-                                <select 
-                                    name="date" 
+                                <select
+                                    name="date"
                                     value={formData.date}
                                     onChange={handleChange}
                                     style={inputStyle}
@@ -230,29 +233,29 @@ const Home = () => {
                                     ))}
                                 </select>
                             </div>
-                            
+
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>Time:</label>
-                                <select 
-                                    name="time" 
+                                <select
+                                    name="time"
                                     value={formData.time}
                                     onChange={handleChange}
                                     style={inputStyle}
                                 >
                                     {times.map(time => (
                                         <option key={time} value={time}>
-                                            {parseInt(time) > 12 
-                                                ? `${parseInt(time) - 12}:${time.split(':')[1]} PM` 
+                                            {parseInt(time) > 12
+                                                ? `${parseInt(time) - 12}:${time.split(':')[1]} PM`
                                                 : `${time} ${parseInt(time) === 12 ? 'PM' : 'AM'}`}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-                            
+
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>Number of People:</label>
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     name="people"
                                     min="1"
                                     max="20"
@@ -261,11 +264,11 @@ const Home = () => {
                                     style={inputStyle}
                                 />
                             </div>
-                            
+
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>City:</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     name="city"
                                     placeholder="Enter city"
                                     value={formData.city}
@@ -273,11 +276,11 @@ const Home = () => {
                                     style={inputStyle}
                                 />
                             </div>
-                            
+
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>State:</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     name="state"
                                     placeholder="Enter state"
                                     value={formData.state}
@@ -285,11 +288,11 @@ const Home = () => {
                                     style={inputStyle}
                                 />
                             </div>
-                            
+
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>ZIP Code:</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     name="zip_code"
                                     placeholder="Enter ZIP code"
                                     value={formData.zip_code}
@@ -297,9 +300,9 @@ const Home = () => {
                                     style={inputStyle}
                                 />
                             </div>
-                            
+
                             <div style={{ display: 'flex', gap: '10px' }}>
-                                <button 
+                                <button
                                     type="button"
                                     style={{
                                         ...searchButtonStyle,
@@ -310,8 +313,8 @@ const Home = () => {
                                 >
                                     Back
                                 </button>
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     disabled={loading}
                                     style={{
                                         ...searchButtonStyle,
@@ -323,7 +326,7 @@ const Home = () => {
                             </div>
                         </form>
                     </div>
-                    
+
                     {error && (
                         <div style={{
                             ...containerStyle,
@@ -334,28 +337,30 @@ const Home = () => {
                             <p>{error}</p>
                         </div>
                     )}
-                    
+
                     {restaurants.length > 0 && (
                         <div style={containerStyle}>
                             <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Available Restaurants</h2>
-                            
+
                             <div style={resultsContainerStyle}>
                                 {restaurants.map((restaurant, index) => (
-                                    <div 
+                                    <div
                                         key={index}
                                         style={cardStyle}
                                         onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
                                         onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                                     >
+
                                         <h3 style={{ marginTop: 0 }}>{restaurant.restaurant_name}</h3>
                                         <p style={{ color: '#666' }}>Cuisine: {restaurant.cuisine}</p>
                                         <p>Rating: {restaurant.rating} ★</p>
+                                        <p>Booked Today: {restaurant.timesBooked ?? restaurant.bookedToday ?? 0}</p>
                                         <p style={{ fontSize: '14px' }}>
                                             {restaurant.city}, {restaurant.state}
                                         </p>
-                                        
-                                        <Link 
-                                            to={`/booking?restaurantId=${restaurant.restaurant_id || index}&time=${restaurant.available_time}&date=${formData.date}&people=${formData.people}`}
+
+                                        <Link
+                                            to={`/booking?restaurantId=${restaurant.restaurant_id || index}&table_id=${restaurant.table_id}&time=${restaurant.available_time}&date=${formData.date}&people=${formData.people}`}
                                             style={bookButtonStyle}
                                         >
                                             Book at {restaurant.available_time}
@@ -365,7 +370,7 @@ const Home = () => {
                             </div>
                         </div>
                     )}
-                    
+
                     {restaurants.length === 0 && !loading && (
                         <div style={{
                             ...containerStyle,
