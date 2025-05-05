@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getRestaurantAvailability } from '../api';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 const Home = () => {
-    // Add user state to track logged in user
-    const [user, setUser] = useState(null);
+    // Use the auth context instead of local state
+    const { user } = useAuth();
     
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
@@ -40,31 +41,10 @@ const Home = () => {
     const [recommendedRestaurants, setRecommendedRestaurants] = useState([]);
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
     
-    // Check for logged in user when component mounts
-    useEffect(() => {
-        const checkLoggedInUser = () => {
-            // Check for token in localStorage
-            const token = localStorage.getItem('token');
-            
-            if (token) {
-                // Fetch user from localStorage if available
-                const userData = JSON.parse(localStorage.getItem('user'));
-                if (userData) {
-                    setUser(userData);
-                } else {
-                    // Alternatively, fetch user data from API using token
-                    // fetchUserProfile(token).then(data => setUser(data));
-                }
-            }
-        };
-        
-        checkLoggedInUser();
-    }, []);
-    
     // Fetch recommended restaurants when user is logged in
     useEffect(() => {
         const fetchRecommendedRestaurants = async () => {
-            if (!user) return;
+            if (!user || user.role === 'RestaurantManager') return;
             
             setLoadingRecommendations(true);
             try {
@@ -294,17 +274,36 @@ const Home = () => {
                     </h1>
                     <p style={heroSubtitleStyle}>
                         {user
-                            ? "Let's explore restaurants near you. Find and book your perfect dining experience."
+                            ? (user.role === 'RestaurantManager' 
+                                ? "Manage your restaurant listings, update availability, and track reservations all in one place."
+                                : "Let's explore restaurants near you. Find and book your perfect dining experience.")
                             : "The easiest way to discover and reserve tables at your favorite restaurants. Find the perfect dining experience for any occasion."}
                     </p>
-                    <button
-                        style={buttonStyle}
-                        onClick={() => setShowSearchForm(true)}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
-                    >
-                        Reserve a Table
-                    </button>
+                    
+                    {/* Conditional rendering based on user role */}
+                    {user && user.role === 'RestaurantManager' ? (
+                        <Link
+                            to="/manager"
+                            style={{
+                                ...buttonStyle,
+                                textDecoration: 'none',
+                                display: 'inline-block'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                        >
+                            Go to Dashboard
+                        </Link>
+                    ) : (
+                        <button
+                            style={buttonStyle}
+                            onClick={() => setShowSearchForm(true)}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                        >
+                            Reserve a Table
+                        </button>
+                    )}
                 </div>
             ) : (
                 <>
@@ -476,8 +475,8 @@ const Home = () => {
                 </>
             )}
             
-            {/* Recommended Restaurants Section - Only show when user is logged in and not showing search form */}
-            {user && !showSearchForm && (
+            {/* Recommended Restaurants Section - Only show when user is logged in (and not a manager) and not showing search form */}
+            {user && user.role !== 'RestaurantManager' && !showSearchForm && (
                 <div style={containerStyle}>
                     <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Recommended For You</h2>
                     
