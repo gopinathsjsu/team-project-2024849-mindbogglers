@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import RestaurantDetails from './pages/RestaurantDetails';
 import Booking from './pages/Booking';
+import BookingConfirmation from './components/BookingConfirmation'; // Import the new component
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -52,6 +53,15 @@ function App() {
             element={
               <PrivateRoute roles={['Customer']}>
                 <Booking />
+              </PrivateRoute>
+            } 
+          />
+          {/* Add a dedicated route for booking confirmation */}
+          <Route 
+            path="/booking/confirmation/:id" 
+            element={
+              <PrivateRoute roles={['Customer']}>
+                <BookingConfirmation />
               </PrivateRoute>
             } 
           />

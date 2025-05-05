@@ -3,6 +3,7 @@ from app.db import models
 from app.db.database import Base, engine
 from app.routers import users, restaurants, restaurant_manager, admin  # Add new routers
 from fastapi.middleware.cors import CORSMiddleware
+from app.db.seed_data import seed_restaurants_tables_reviews
 
 
 app = FastAPI(
@@ -19,6 +20,11 @@ app.include_router(users.router)
 app.include_router(restaurants.router)
 app.include_router(restaurant_manager.router)  
 app.include_router(admin.router)  
+
+@app.on_event("startup")
+def startup_event():
+    from app.db.seed_data import seed_restaurants_tables_reviews
+    seed_restaurants_tables_reviews()
 
 # Root endpoint
 @app.get("/")

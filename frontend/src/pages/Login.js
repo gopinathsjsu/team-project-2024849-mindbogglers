@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Add Link import
 import { loginUser } from '../api';
 import { AuthContext } from '../AuthContext';
 
@@ -47,7 +47,18 @@ const Login = () => {
                 />
                 <button type="submit" className="submit-btn">Login</button>
             </form>
-            {error && <p>{error}</p>}
+            {error && <p className="error-message">{error}</p>}
+            
+            {/* Add registration prompt here */}
+            <div className="registration-prompt" style={{ 
+                marginTop: '20px', 
+                textAlign: 'center',
+                padding: '15px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '5px'
+            }}>
+                <p>New to BookTable? <Link to="/register" style={{ color: '#007bff', fontWeight: 'bold' }}>Create an account</Link> to make reservations.</p>
+            </div>
         </div>
     );
 };

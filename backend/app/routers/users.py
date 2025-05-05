@@ -23,25 +23,39 @@ def register_user(user: auth_model.UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-
-    # Hash the user's password
-    hashed_pw = auth_handler.hash_password(user.password)
-
-    # Create a new User instance
-    new_user = models.User(
-        email=user.email,
-        hashed_password=hashed_pw,
-        full_name=user.full_name,
-        role=user.role
-    )
-
-    # Add the user to the database and save changes
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    # Return a success message
-    return {"msg": "User registered successfully"}
+    
+    try:
+        # Hash the user's password
+        hashed_pw = auth_handler.hash_password(user.password)
+        
+        # Create a new User instance
+        new_user = models.User(
+            email=user.email,
+            hashed_password=hashed_pw,
+            full_name=user.full_name,
+            role=user.role
+        )
+        
+        # Add the user to the database and save changes
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        # Generate access token immediately after registration
+        access_token = auth_handler.create_access_token(
+            data={"sub": new_user.email, "role": new_user.role}
+        )
+        
+        # Return the token to automatically log in the user
+        return {"access_token": access_token, "token_type": "bearer"}
+        
+    except ValueError as e:
+        # Handle password validation errors
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # Handle any other unexpected errors
+        db.rollback()  # Roll back the transaction if an error occurs
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 # User Login Endpoint
 @router.post("/login")

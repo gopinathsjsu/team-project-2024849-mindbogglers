@@ -1,56 +1,173 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { getRestaurantDetails } from '../api';
+import { getRestaurantDetails, addReview } from '../api';
+import { AuthContext } from '../AuthContext';
+import './RestaurantDetails.css'; // Create this CSS file for styling
 
 const RestaurantDetails = () => {
     const { id } = useParams();
     const [restaurant, setRestaurant] = useState(null);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         const fetchDetails = async () => {
             try {
+                setLoading(true);
                 const response = await getRestaurantDetails(id);
                 setRestaurant(response.data);
+                setError(null);
             } catch (err) {
-                setError(err.message);
+                setError(err.message || 'Failed to load restaurant details');
+            } finally {
+                setLoading(false);
             }
         };
         fetchDetails();
     }, [id]);
 
-    if (error) return <p>{error}</p>;
-    if (!restaurant) return <p>Loading...</p>;
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        if (!user) {
+            setError('You must be logged in to leave a review');
+            return;
+        }
+
+        try {
+            await addReview(id, newReview);
+            // Refresh restaurant details to show the new review
+            const response = await getRestaurantDetails(id);
+            setRestaurant(response.data);
+            // Reset form
+            setNewReview({ rating: 5, comment: '' });
+        } catch (err) {
+            setError('Failed to submit review: ' + err.message);
+        }
+    };
+
+    if (loading) return <div className="loading-spinner">Loading...</div>;
+    if (error) return <div className="error-message">{error}</div>;
+    if (!restaurant) return <div className="not-found">Restaurant not found</div>;
 
     return (
-        <div className="container">
-            <h1 className="page-title">{restaurant.name}</h1>
-            <p className="cuisine">Cuisine: {restaurant.cuisine}</p>
-            <p>Address: {restaurant.address}</p>
-            <p>Contact: {restaurant.contact}</p>
-            <p>Description: {restaurant.description}</p>
-            <div>
-                <h3>Reviews</h3>
-                {restaurant.reviews && restaurant.reviews.length ? (
-                    restaurant.reviews.map((review, index) => (
-                        <div key={index}>
-                            <p>{review.comment} - {review.rating} stars</p>
-                        </div>
-                    ))
-                ) : (
-                    <p>No reviews available.</p>
-                )}
+        <div className="restaurant-details-container">
+            <div className="restaurant-header">
+                <h1 className="restaurant-name">{restaurant.name}</h1>
+                <div className="restaurant-meta">
+                    <span className="cuisine-tag">{restaurant.cuisine}</span>
+                    <div className="restaurant-rating">
+                        {[...Array(5)].map((_, i) => (
+                            <span key={i} className={i < restaurant.rating ? "star filled" : "star"}>★</span>
+                        ))}
+                        <span className="rating-text">({restaurant.rating || 'No ratings yet'})</span>
+                    </div>
+                    {restaurant.bookings_today !== undefined && (
+                        <span className="bookings-today">{restaurant.bookings_today} bookings today</span>
+                    )}
+                </div>
             </div>
-            <div>
-                <h3>Location</h3>
-                <iframe
-                    width="600"
-                    height="450"
-                    style={{ border: 0, width: '100%', maxWidth: '600px' }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(restaurant.address)}`}
-                ></iframe>
+
+            <div className="restaurant-info-section">
+                <div className="info-col">
+                    <div className="info-card">
+                        <h3>About</h3>
+                        <p className="restaurant-description">{restaurant.description}</p>
+                        <div className="contact-info">
+                            <p><strong>Address:</strong> {restaurant.address}</p>
+                            <p><strong>Contact:</strong> {restaurant.contact}</p>
+                            <p><strong>Hours:</strong> {restaurant.opening_hours || 'Not specified'}</p>
+                        </div>
+                    </div>
+
+                    <div className="reviews-section">
+                        <h3>Customer Reviews</h3>
+                        {restaurant.reviews && restaurant.reviews.length ? (
+                            <div className="reviews-list">
+                                {restaurant.reviews.map((review, index) => (
+                                    <div key={index} className="review-card">
+                                        <div className="review-header">
+                                            <div className="rating">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <span key={i} className={i < review.rating ? "star filled" : "star"}>★</span>
+                                                ))}
+                                            </div>
+                                            <div className="reviewer">{review.user_name || 'Anonymous'}</div>
+                                        </div>
+                                        <p className="review-text">{review.comment}</p>
+                                        {review.date && (
+                                            <p className="review-date">{new Date(review.date).toLocaleDateString()}</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="no-reviews">No reviews available yet. Be the first to leave a review!</p>
+                        )}
+                        
+                        {user && (
+                            <div className="add-review-section">
+                                <h4>Leave a Review</h4>
+                                <form onSubmit={handleReviewSubmit} className="review-form">
+                                    <div className="rating-selector">
+                                        <label>Your Rating:</label>
+                                        <div className="star-rating">
+                                            {[...Array(5)].map((_, index) => {
+                                                const ratingValue = index + 1;
+                                                return (
+                                                    <label key={index}>
+                                                        <input 
+                                                            type="radio" 
+                                                            name="rating" 
+                                                            value={ratingValue} 
+                                                            onClick={() => setNewReview({...newReview, rating: ratingValue})}
+                                                            style={{display: 'none'}}
+                                                        />
+                                                        <span 
+                                                            className={ratingValue <= newReview.rating ? "star filled" : "star"}
+                                                            style={{cursor: 'pointer'}}
+                                                        >
+                                                            ★
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className="comment-field">
+                                        <label htmlFor="review-comment">Your Review:</label>
+                                        <textarea 
+                                            id="review-comment"
+                                            value={newReview.comment}
+                                            onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
+                                            placeholder="Share your experience at this restaurant..."
+                                            required
+                                        />
+                                    </div>
+                                    <button type="submit" className="submit-review-btn">Submit Review</button>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="map-section">
+                    <h3>Location</h3>
+                    <div className="map-container">
+                        <iframe
+                            width="100%"
+                            height="450"
+                            style={{ border: 0, borderRadius: '8px' }}
+                            loading="lazy"
+                            allowFullScreen
+                            src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(
+                                `${restaurant.name}, ${restaurant.address}`
+                            )}`}
+                            title="Restaurant location"
+                        ></iframe>
+                    </div>
+                </div>
             </div>
         </div>
     );

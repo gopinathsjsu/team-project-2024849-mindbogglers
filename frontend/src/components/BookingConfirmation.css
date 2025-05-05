@@ -1,0 +1,190 @@
+/* BookingConfirmation.css */
+.booking-confirmation-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 80vh;
+}
+
+.confirmation-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+}
+
+.confirmation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 1rem;
+}
+
+.confirmation-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.success-badge {
+  background-color: #28a745;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.confirmation-details {
+  padding: 1rem 0;
+}
+
+.confirmation-details h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #0056b3;
+  font-size: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+  min-width: 45%;
+}
+
+.detail-item span {
+  font-weight: 500;
+}
+
+.restaurant-address {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  position: relative;
+}
+
+.restaurant-address svg {
+  margin-right: 10px;
+  color: #dc3545;
+}
+
+.map-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.map-link:hover {
+  text-decoration: underline;
+}
+
+.confirmation-options {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.confirmation-options h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-row {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.phone-input {
+  margin-left: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.send-confirmation-btn {
+  margin-top: 1rem;
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.send-confirmation-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.cancellation-policy {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  border-top: 1px solid #e8e8e8;
+  padding-top: 1.5rem;
+}
+
+.calendar-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .detail-row {
+    flex-direction: column;
+  }
+  
+  .confirmation-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .confirmation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

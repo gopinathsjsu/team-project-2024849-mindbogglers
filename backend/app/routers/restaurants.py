@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -7,7 +7,7 @@ from app.auth.auth_dependency import get_current_user
 from app.db.models import User
 from app.models_api.restaurant import RestaurantCreate
 from app.models_api.reservation import ReservationCreate
-from app.utils.email_utils import send_booking_confirmation  
+from app.utils.email_utils import send_booking_confirmation, BookingConfirmationDetails 
 
 router = APIRouter(
     prefix="/restaurants",
@@ -22,34 +22,51 @@ def get_db():
     finally:
         db.close()
 
-# 🔍 Search restaurants
+# 🔍 Search restaurants - UPDATED to fix issues
 @router.get("/search", response_model=List[dict])
 def search_restaurants(
+    date: Optional[str] = None,
+    time: Optional[str] = None,
+    people: Optional[int] = None,
     city: Optional[str] = None,
     state: Optional[str] = None,
+    zip_code: Optional[str] = None,
     cuisine: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
+    # Debug logging
+    print(f"Search params: date={date}, time={time}, people={people}, city={city}, state={state}, zip_code={zip_code}")
+    
     query = db.query(models.Restaurant)
 
-    if city:
+    # Apply filters only if they are provided and not empty
+    if city and city.strip():
         query = query.filter(models.Restaurant.city.ilike(f"%{city}%"))
-    if state:
+    if state and state.strip():
         query = query.filter(models.Restaurant.state.ilike(f"%{state}%"))
-    if cuisine:
+    if zip_code and zip_code.strip():
+        query = query.filter(models.Restaurant.zip_code == zip_code)
+    if cuisine and cuisine.strip():
         query = query.filter(models.Restaurant.cuisine.ilike(f"%{cuisine}%"))
 
     restaurants = query.all()
+    
+    # Debug logging
+    print(f"Found {len(restaurants)} restaurants")
+    
+    # Return empty list instead of raising 404 error
     if not restaurants:
-        raise HTTPException(status_code=404, detail="No restaurants found matching the criteria.")
+        return []
 
     return [
         {
+            "id": r.id,  # Include the restaurant ID
             "name": r.name,
             "cuisine": r.cuisine,
             "cost_rating": r.cost_rating,
             "city": r.city,
             "state": r.state,
+            "zip_code": r.zip_code,  # Include zip_code
             "rating": r.rating,
             "total_bookings": r.total_bookings,
             "maps_url": f"https://www.google.com/maps/search/?api=1&query={'+'.join(r.name.split())}+{r.zip_code}+{'+'.join(r.city.split())}+{r.state}"
@@ -158,7 +175,8 @@ def get_reviews(
             "review_id": r.id,
             "user_name": r.user.full_name,
             "rating": r.rating,
-            "comment": r.comment
+            "comment": r.comment,
+            "date": r.created_at.strftime("%Y-%m-%d") if hasattr(r, 'created_at') else None
         }
         for r in reviews
     ]
@@ -180,6 +198,66 @@ def get_my_reservations(
             "number_of_people": r.number_of_people
         } for r in reservations
     ]
+
+# 📧 Send confirmation email endpoint
+@router.post("/api/send-confirmation-email")
+async def email_confirmation(
+    background_tasks: BackgroundTasks,
+    reservation_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Send booking confirmation email to user."""
+    
+    # Verify the reservation exists and belongs to the user
+    reservation = db.query(models.Reservation).filter(
+        models.Reservation.id == reservation_id,
+        models.Reservation.user_id == current_user.id
+    ).join(models.Restaurant).first()
+    
+    if not reservation:
+        raise HTTPException(status_code=404, detail="Reservation not found or doesn't belong to you")
+    
+    # Get restaurant details
+    restaurant = reservation.restaurant
+    
+    # Create booking details object
+    booking_details = BookingConfirmationDetails(
+        id=str(reservation.id),
+        restaurant_name=restaurant.name,
+        date=reservation.date.strftime("%A, %B %d, %Y"),
+        time=reservation.time.strftime("%H:%M"),
+        people=reservation.number_of_people,
+        table_type=f"Table #{reservation.table_id}" if reservation.table_id else "Standard",
+        address=f"{restaurant.city}, {restaurant.state} {restaurant.zip_code}",
+        contact=restaurant.contact if hasattr(restaurant, 'contact') else None
+    )
+    
+    # Send email in the background
+    background_tasks.add_task(
+        send_booking_confirmation, 
+        current_user.email, 
+        booking_details
+    )
+    
+    return {"message": "Confirmation email will be sent shortly"}
+
+# 🕒 Get today's bookings count for a restaurant
+@router.get("/{restaurant_id}/bookings/today")
+def get_today_bookings_count(
+    restaurant_id: int,
+    db: Session = Depends(get_db)
+):
+    # Get today's date
+    today = datetime.now().date()
+    
+    # Query the database for bookings made today for this restaurant
+    bookings_count = db.query(models.Reservation).filter(
+        models.Reservation.restaurant_id == restaurant_id,
+        models.Reservation.date == today
+    ).count()
+    
+    return {"count": bookings_count}
 
 # ✅ Book table + prevent overlaps + send email
 @router.post("/{restaurant_id}/book")
@@ -241,13 +319,26 @@ def book_table(
     db.commit()
     db.refresh(new_reservation)
 
-    # 📧 Send confirmation email
+    # Increment the total_bookings count for the restaurant
+    restaurant.total_bookings += 1
+    db.commit()
+
+    # 📧 Send confirmation email with new structure
+    booking_details = BookingConfirmationDetails(
+        id=str(new_reservation.id),
+        restaurant_name=restaurant.name,
+        date=reservation.date.strftime("%A, %B %d, %Y"),
+        time=reservation.time.strftime("%H:%M"),
+        people=reservation.number_of_people,
+        table_type=f"Table #{reservation.table_id}",
+        address=f"{restaurant.city}, {restaurant.state} {restaurant.zip_code}",
+        contact=restaurant.contact if hasattr(restaurant, 'contact') else None
+    )
+    
+    # Send confirmation email
     send_booking_confirmation(
         to_email=current_user.email,
-        restaurant_name=restaurant.name,
-        date=str(reservation.date),
-        time=reservation.time.strftime("%H:%M"),
-        number_of_people=reservation.number_of_people
+        booking_details=booking_details
     )
 
     return {"message": "✅ Table booked successfully!", "reservation_id": new_reservation.id}
@@ -269,6 +360,13 @@ def cancel_booking(
 
     if reservation.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You can only cancel your own reservations.")
+
+    # Decrement the restaurant's total_bookings count if the reservation is for today or in the future
+    today = datetime.now().date()
+    if reservation.date >= today:
+        restaurant = db.query(models.Restaurant).filter(models.Restaurant.id == reservation.restaurant_id).first()
+        if restaurant and restaurant.total_bookings > 0:
+            restaurant.total_bookings -= 1
 
     db.delete(reservation)
     db.commit()
@@ -305,7 +403,8 @@ def add_review(
         user_id=current_user.id,
         restaurant_id=restaurant_id,
         rating=rating,
-        comment=comment
+        comment=comment,
+        created_at=datetime.now()
     )
     
     db.add(new_review)
@@ -324,3 +423,25 @@ def add_review(
     db.commit()
     
     return {"message": "Review added successfully"}
+
+@router.get("/{restaurant_id}")
+def get_restaurant_details(
+    restaurant_id: int,
+    db: Session = Depends(get_db)
+):
+    restaurant = db.query(models.Restaurant).filter(models.Restaurant.id == restaurant_id).first()
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restaurant not found.")
+
+    return {
+        "id": restaurant.id,
+        "name": restaurant.name,
+        "cuisine": restaurant.cuisine,
+        "cost_rating": restaurant.cost_rating,
+        "city": restaurant.city,
+        "state": restaurant.state,
+        "zip_code": restaurant.zip_code,
+        "rating": restaurant.rating,
+        "contact": restaurant.contact if hasattr(restaurant, 'contact') else None,
+        "address": f"{restaurant.city}, {restaurant.state} {restaurant.zip_code}"
+    }

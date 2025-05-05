@@ -41,9 +41,15 @@ export const login = async (credentials) => {
     try {
         console.log('Logging in with credentials:', credentials.email);
         const response = await instance.post('/users/login', {
-            email: credentials.email, // FastAPI uses 'username' for the email field
+            email: credentials.email,
             password: credentials.password
         });
+        
+        // Store token in localStorage
+        if (response.data.access_token) {
+            localStorage.setItem('token', response.data.access_token);
+        }
+        
         return response.data;
     } catch (error) {
         throw error;
@@ -53,6 +59,12 @@ export const login = async (credentials) => {
 export const register = async (userData) => {
     try {
         const response = await instance.post('/users/register', userData);
+        
+        // Store token in localStorage after registration
+        if (response.data.access_token) {
+            localStorage.setItem('token', response.data.access_token);
+        }
+        
         return response.data;
     } catch (error) {
         throw error;
@@ -99,7 +111,7 @@ export const getRestaurantReviews = async (restaurantId) => {
 
 export const bookTable = async (restaurantId) => {
     try {
-        console.log(restaurantId)
+        console.log(restaurantId);
         const response = await instance.post(`/restaurants/${restaurantId.restaurantId}/book`, restaurantId);
         return response.data;
     } catch (error) {
@@ -219,6 +231,87 @@ export const getAnalytics = async (timeframe = 'month') => {
     }
 };
 
+// Restaurant details - MODIFIED to use search endpoint
+export const getRestaurantDetails = async (id) => {
+    try {
+        // First try using the search endpoint with restaurant_id parameter
+        const response = await instance.get('/restaurants/search', { 
+            params: { restaurant_id: id } 
+        });
+        
+        // Check if we got results
+        if (Array.isArray(response.data) && response.data.length > 0) {
+            const data = response.data[0];
+            
+            // Format the address
+            return {
+                ...data,
+                address: {
+                    street: '',  // Street info not available from search
+                    city: data.city || '',
+                    state: data.state || '',
+                    zipCode: data.zip_code || ''
+                },
+                contactEmail: data.email || '',
+                contact: data.contact || data.phone || ''
+            };
+        } else {
+            // If search doesn't return results, try the direct endpoint
+            try {
+                const directResponse = await instance.get(`/restaurants/${id}`);
+                const directData = directResponse.data;
+                
+                return {
+                    ...directData,
+                    address: typeof directData.address === 'object' 
+                        ? directData.address 
+                        : {
+                            street: '',
+                            city: directData.city || '',
+                            state: directData.state || '',
+                            zipCode: directData.zip_code || ''
+                          }
+                };
+            } catch (directError) {
+                console.error('Direct endpoint failed, using availability as fallback');
+                
+                // Last resort: try to get info from availability endpoint
+                const availabilityResponse = await instance.get('/restaurants/availability', {
+                    params: {
+                        date: new Date().toISOString().split('T')[0],
+                        time: '19:00',
+                        people: 2
+                    }
+                });
+                
+                const restaurant = availabilityResponse.data.find(r => r.restaurant_id == id);
+                
+                if (restaurant) {
+                    return {
+                        id: restaurant.restaurant_id,
+                        name: restaurant.restaurant_name,
+                        cuisine: restaurant.cuisine,
+                        cost_rating: restaurant.cost_rating,
+                        rating: restaurant.rating,
+                        city: restaurant.city,
+                        address: {
+                            street: '',
+                            city: restaurant.city || '',
+                            state: '',
+                            zipCode: ''
+                        }
+                    };
+                }
+                
+                throw new Error('Restaurant not found');
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching restaurant details:', error);
+        throw error;
+    }
+};
+
 // Auth aliases
 export const loginUser = login;
 export const registerUser = register;
@@ -230,8 +323,3 @@ export const cancelBooking = cancelReservation;
 export const getDashboardAnalytics = getAnalytics;
 export const getPendingRestaurants = getPendingApprovals;
 export const approveRestaurant = updateApprovalStatus;
-
-// Restaurant details alias
-export const getRestaurantDetails = (id) => {
-    return searchRestaurants({ restaurant_id: id });
-};

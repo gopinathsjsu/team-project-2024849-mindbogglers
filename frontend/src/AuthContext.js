@@ -1,9 +1,9 @@
 // src/AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { login as apiLogin, getUserProfile } from './api';
+import { login as apiLogin, getUserProfile, registerUser } from './api';
 
 // Create the Auth Context
-export const AuthContext = createContext(); // Change to export directly
+export const AuthContext = createContext();
 
 // Custom hook to use the auth context
 export const useAuth = () => {
@@ -37,25 +37,53 @@ export const AuthProvider = ({ children }) => {
       }
       setLoading(false);
     };
-
     checkLoggedIn();
   }, []);
 
   // Login function
-  const login = async (data) => {
+  const login = async (credentials) => {
     try {
       setError(null);
-      //const data = await apiLogin(credentials);
-
+      let data;
+      
+      // Check if we received token data directly or need to make API call
+      if (credentials.access_token) {
+        data = credentials;
+      } else {
+        data = await apiLogin(credentials);
+      }
+      
       // Save token to localStorage
       console.log('Login data:', data);
       localStorage.setItem('token', data.access_token);
-
+      
       // Get user data
       const userData = await getUserProfile();
       setUser(userData);
-
       return userData;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Register function
+  const register = async (userData) => {
+    try {
+      setError(null);
+      const data = await registerUser(userData);
+      
+      // Save token to localStorage
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token);
+        
+        // Get user profile after registration
+        const userProfile = await getUserProfile();
+        setUser(userProfile);
+        return userProfile;
+      } else {
+        throw new Error('Registration successful but no token received');
+      }
     } catch (err) {
       setError(err.message);
       throw err;
@@ -75,9 +103,9 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
+    register,
     isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

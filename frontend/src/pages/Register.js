@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../api';
 import { AuthContext } from '../AuthContext';
-import axios from 'axios';
+import PasswordRequirements from '../components/PasswordRequirements';
 
 const Register = () => {
     const [userData, setUserData] = useState({
@@ -12,11 +12,16 @@ const Register = () => {
         role: 'Customer'
     });
     const [errorMessage, setErrorMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false); // Add this state
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleChange = e => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
     };
 
     const handleSubmit = async e => {
@@ -74,15 +79,38 @@ const Register = () => {
                     onChange={handleChange}
                     required
                 />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={userData.password}
+                <div style={{ width: '100%', position: 'relative' }}>
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="Password"
+                        value={userData.password}
+                        onChange={handleChange}
+                        required
+                    />
+                    <button 
+                        type="button" 
+                        onClick={togglePasswordVisibility}
+                        style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '10px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {showPassword ? "👁️‍🗨️" : "👁️"}
+                    </button>
+                    {userData.password !== undefined && (
+                        <PasswordRequirements password={userData.password} />
+                    )}
+                </div>
+                <select 
+                    name="role" 
+                    value={userData.role} 
                     onChange={handleChange}
-                    required
-                />
-                <select name="role" value={userData.role} onChange={handleChange}>
+                >
                     <option value="Customer">Customer</option>
                     <option value="RestaurantManager">Restaurant Manager</option>
                     <option value="Admin">Admin</option>
