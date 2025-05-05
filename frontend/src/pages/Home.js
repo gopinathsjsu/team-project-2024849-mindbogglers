@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getRestaurantAvailability } from '../api';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+    // Add user state to track logged in user
+    const [user, setUser] = useState(null);
+    
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
 
@@ -34,6 +37,83 @@ const Home = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showSearchForm, setShowSearchForm] = useState(false);
+    const [recommendedRestaurants, setRecommendedRestaurants] = useState([]);
+    const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+    
+    // Check for logged in user when component mounts
+    useEffect(() => {
+        const checkLoggedInUser = () => {
+            // Check for token in localStorage
+            const token = localStorage.getItem('token');
+            
+            if (token) {
+                // Fetch user from localStorage if available
+                const userData = JSON.parse(localStorage.getItem('user'));
+                if (userData) {
+                    setUser(userData);
+                } else {
+                    // Alternatively, fetch user data from API using token
+                    // fetchUserProfile(token).then(data => setUser(data));
+                }
+            }
+        };
+        
+        checkLoggedInUser();
+    }, []);
+    
+    // Fetch recommended restaurants when user is logged in
+    useEffect(() => {
+        const fetchRecommendedRestaurants = async () => {
+            if (!user) return;
+            
+            setLoadingRecommendations(true);
+            try {
+                // Replace this with your actual API call
+                // const response = await getRecommendedRestaurants(user.id);
+                // setRecommendedRestaurants(response);
+                
+                // Mock data for now
+                setRecommendedRestaurants([
+                    {
+                        restaurant_id: 1,
+                        restaurant_name: "Italian Delight",
+                        cuisine: "Italian",
+                        rating: 4.8,
+                        bookedToday: 15,
+                        city: "San Francisco",
+                        state: "CA",
+                        image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400&h=250"
+                    },
+                    {
+                        restaurant_id: 2,
+                        restaurant_name: "Sushi Heaven",
+                        cuisine: "Japanese",
+                        rating: 4.6,
+                        bookedToday: 12,
+                        city: "San Jose",
+                        state: "CA",
+                        image: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?auto=format&fit=crop&q=80&w=400&h=250"
+                    },
+                    {
+                        restaurant_id: 3,
+                        restaurant_name: "Taco Palace",
+                        cuisine: "Mexican",
+                        rating: 4.5,
+                        bookedToday: 8,
+                        city: "Santa Clara",
+                        state: "CA",
+                        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=400&h=250"
+                    }
+                ]);
+            } catch (err) {
+                console.error('Error fetching recommendations:', err);
+            } finally {
+                setLoadingRecommendations(false);
+            }
+        };
+        
+        fetchRecommendedRestaurants();
+    }, [user]);
 
     const handleChange = (e) => {
         console.log(`Field changed: ${e.target.name} = ${e.target.value}`);
@@ -127,7 +207,7 @@ const Home = () => {
         padding: '25px',
         marginBottom: '30px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        maxWidth: '800px',
+        maxWidth: '1000px',
         margin: '0 auto'
     };
 
@@ -191,6 +271,14 @@ const Home = () => {
         fontWeight: 'bold',
         textAlign: 'center'
     };
+    
+    const restaurantImageStyle = {
+        width: '100%',
+        height: '180px',
+        objectFit: 'cover',
+        borderRadius: '4px',
+        marginBottom: '15px'
+    };
 
     return (
         <div style={pageStyle}>
@@ -198,10 +286,16 @@ const Home = () => {
 
             {!showSearchForm ? (
                 <div style={heroContainerStyle}>
-                    <h1 style={heroTitleStyle}>Welcome to BookTable</h1>
+                    {/* Personalized welcome message for logged in users */}
+                    <h1 style={heroTitleStyle}>
+                        {user 
+                            ? `Hello, Welcome ${user.name || user.username || 'Back'}!` 
+                            : 'Welcome to BookTable'}
+                    </h1>
                     <p style={heroSubtitleStyle}>
-                        The easiest way to discover and reserve tables at your favorite restaurants.
-                        Find the perfect dining experience for any occasion.
+                        {user
+                            ? "Let's explore restaurants near you. Find and book your perfect dining experience."
+                            : "The easiest way to discover and reserve tables at your favorite restaurants. Find the perfect dining experience for any occasion."}
                     </p>
                     <button
                         style={buttonStyle}
@@ -350,7 +444,6 @@ const Home = () => {
                                         onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
                                         onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                                     >
-
                                         <h3 style={{ marginTop: 0 }}>{restaurant.restaurant_name}</h3>
                                         <p style={{ color: '#666' }}>Cuisine: {restaurant.cuisine}</p>
                                         <p>Rating: {restaurant.rating} ★</p>
@@ -381,6 +474,70 @@ const Home = () => {
                         </div>
                     )}
                 </>
+            )}
+            
+            {/* Recommended Restaurants Section - Only show when user is logged in and not showing search form */}
+            {user && !showSearchForm && (
+                <div style={containerStyle}>
+                    <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Recommended For You</h2>
+                    
+                    {loadingRecommendations ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>
+                            <p>Loading recommendations...</p>
+                        </div>
+                    ) : (
+                        <div style={resultsContainerStyle}>
+                            {recommendedRestaurants.map((restaurant) => (
+                                <div
+                                    key={restaurant.restaurant_id}
+                                    style={cardStyle}
+                                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                                >
+                                    {restaurant.image && (
+                                        <img 
+                                            src={restaurant.image} 
+                                            alt={restaurant.restaurant_name}
+                                            style={restaurantImageStyle}
+                                        />
+                                    )}
+                                    
+                                    <h3 style={{ marginTop: 0 }}>{restaurant.restaurant_name}</h3>
+                                    <p style={{ color: '#666' }}>Cuisine: {restaurant.cuisine}</p>
+                                    <p>Rating: {restaurant.rating} ★</p>
+                                    <p>Booked Today: {restaurant.bookedToday || 0}</p>
+                                    <p style={{ fontSize: '14px' }}>
+                                        {restaurant.city}, {restaurant.state}
+                                    </p>
+
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <Link
+                                            to={`/restaurant/${restaurant.restaurant_id}`}
+                                            style={{
+                                                ...bookButtonStyle,
+                                                backgroundColor: '#444',
+                                                flex: '1',
+                                                textAlign: 'center'
+                                            }}
+                                        >
+                                            Details
+                                        </Link>
+                                        <Link
+                                            to={`/booking?restaurantId=${restaurant.restaurant_id}&date=${today}&people=2`}
+                                            style={{
+                                                ...bookButtonStyle,
+                                                flex: '1',
+                                                textAlign: 'center'
+                                            }}
+                                        >
+                                            Book Now
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
         </div>
     );
