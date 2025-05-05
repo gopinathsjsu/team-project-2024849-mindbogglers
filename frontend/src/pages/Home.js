@@ -44,7 +44,7 @@ const Home = () => {
     // Fetch recommended restaurants when user is logged in
     useEffect(() => {
         const fetchRecommendedRestaurants = async () => {
-            if (!user || user.role === 'RestaurantManager') return;
+            if (!user || user.role === 'RestaurantManager' || user.role === 'Admin') return;
             
             setLoadingRecommendations(true);
             try {
@@ -269,19 +269,36 @@ const Home = () => {
                     {/* Personalized welcome message for logged in users */}
                     <h1 style={heroTitleStyle}>
                         {user 
-                            ? `Hello, Welcome ${user.name || user.username || 'Back'}!` 
+                            ? user.role === 'Admin'
+                                ? 'Hello Admin, Welcome Back!'
+                                : `Hello, Welcome ${user.name || user.username || 'Back'}!` 
                             : 'Welcome to BookTable'}
                     </h1>
                     <p style={heroSubtitleStyle}>
                         {user
-                            ? (user.role === 'RestaurantManager' 
-                                ? "Manage your restaurant listings, update availability, and track reservations all in one place."
-                                : "Let's explore restaurants near you. Find and book your perfect dining experience.")
+                            ? user.role === 'Admin' 
+                                ? "Manage restaurant approvals, view analytics, and monitor platform activity from your admin dashboard."
+                                : user.role === 'RestaurantManager' 
+                                    ? "Manage your restaurant listings, update availability, and track reservations all in one place."
+                                    : "Let's explore restaurants near you. Find and book your perfect dining experience."
                             : "The easiest way to discover and reserve tables at your favorite restaurants. Find the perfect dining experience for any occasion."}
                     </p>
                     
                     {/* Conditional rendering based on user role */}
-                    {user && user.role === 'RestaurantManager' ? (
+                    {user && user.role === 'Admin' ? (
+                        <Link
+                            to="/admin"
+                            style={{
+                                ...buttonStyle,
+                                textDecoration: 'none',
+                                display: 'inline-block'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                        >
+                            Go to Admin Dashboard
+                        </Link>
+                    ) : user && user.role === 'RestaurantManager' ? (
                         <Link
                             to="/manager"
                             style={{
@@ -475,8 +492,8 @@ const Home = () => {
                 </>
             )}
             
-            {/* Recommended Restaurants Section - Only show when user is logged in (and not a manager) and not showing search form */}
-            {user && user.role !== 'RestaurantManager' && !showSearchForm && (
+            {/* Recommended Restaurants Section - Only show for customers */}
+            {user && user.role === 'Customer' && !showSearchForm && (
                 <div style={containerStyle}>
                     <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Recommended For You</h2>
                     
