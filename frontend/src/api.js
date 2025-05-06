@@ -347,6 +347,41 @@ export const getAnalytics = async (timeframe = 'month') => {
     }
 };
 
+// In api.js
+export const createReservation = async (bookingData) => {
+    try {
+        // If you have a backend API
+        const response = await fetch('/api/reservations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(bookingData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to create reservation');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API error creating reservation:', error);
+        
+        // Fallback to local storage if API fails or doesn't exist
+        const reservations = JSON.parse(localStorage.getItem('userReservations') || '[]');
+        const newReservation = {
+            id: `local-${Date.now()}`,
+            ...bookingData,
+            createdAt: new Date().toISOString()
+        };
+        reservations.push(newReservation);
+        localStorage.setItem('userReservations', JSON.stringify(reservations));
+        
+        return newReservation;
+    }
+};
+
 // Auth aliases
 export const loginUser = login;
 export const registerUser = register;

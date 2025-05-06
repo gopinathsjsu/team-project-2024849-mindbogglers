@@ -1,14 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { getRestaurantAvailability } from '../api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { getRestaurantAvailability } from '../api';
+import './RestaurantSearchResults.css';
 
 const Home = () => {
-    // Use the auth context instead of local state
     const { user } = useAuth();
-    
-    // Get today's date in YYYY-MM-DD format
+    const navigate = useNavigate();
     const today = new Date().toISOString().split('T')[0];
+    const [loading, setLoading] = useState(false);
+    const [featuredRestaurants, setFeaturedRestaurants] = useState([]);
+    const [showSearchForm, setShowSearchForm] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    const [showResults, setShowResults] = useState(false);
+    
+    // Form data for reservation search
+    const [formData, setFormData] = useState({
+        date: today,
+        time: '19:00',
+        people: '2',
+        city: '',
+        state: '',
+        zip_code: ''
+    });
+
+    // Common reservation times
+    const times = [
+        '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+        '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
+    ];
 
     // Create array of dates for the next 7 days
     const dates = [];
@@ -20,118 +40,267 @@ const Home = () => {
         dates.push({ value: formattedDate, label: displayDate });
     }
 
-    // Common reservation times
-    const times = [
-        '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-        '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
-    ];
-
-    const [formData, setFormData] = useState({
-        date: today,
-        time: '19:00',
-        people: '2',
-        city: '',
-        state: '',
-        zip_code: ''
-    });
-    const [restaurants, setRestaurants] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [showSearchForm, setShowSearchForm] = useState(false);
-    const [recommendedRestaurants, setRecommendedRestaurants] = useState([]);
-    const [loadingRecommendations, setLoadingRecommendations] = useState(false);
-    
-    // Fetch recommended restaurants when user is logged in
+    // Featured restaurants data - only load for customers or non-logged in users
     useEffect(() => {
-        const fetchRecommendedRestaurants = async () => {
-            if (!user || user.role === 'RestaurantManager' || user.role === 'Admin') return;
+        const loadFeaturedRestaurants = async () => {
+            // Only load featured restaurants for customers or non-logged in users
+            if (user && (user.role === 'Admin' || user.role === 'RestaurantManager')) {
+                return;
+            }
             
-            setLoadingRecommendations(true);
+            setLoading(true);
             try {
-                // Replace this with your actual API call
-                // const response = await getRecommendedRestaurants(user.id);
-                // setRecommendedRestaurants(response);
-                
-                // Mock data for now
-                setRecommendedRestaurants([
+                // In a real app, you would fetch this from your API
+                // For now, using mock data
+                setFeaturedRestaurants([
                     {
-                        restaurant_id: 1,
-                        restaurant_name: "Italian Delight",
+                        id: 1,
+                        name: "Italian Delight",
                         cuisine: "Italian",
                         rating: 4.8,
-                        bookedToday: 15,
+                        image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=600&h=350",
                         city: "San Francisco",
-                        state: "CA",
-                        image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400&h=250"
+                        description: "Authentic Italian cuisine in a warm, inviting atmosphere."
                     },
                     {
-                        restaurant_id: 2,
-                        restaurant_name: "Sushi Heaven",
+                        id: 2,
+                        name: "Sushi Heaven",
                         cuisine: "Japanese",
                         rating: 4.6,
-                        bookedToday: 12,
+                        image: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?auto=format&fit=crop&q=80&w=600&h=350",
                         city: "San Jose",
-                        state: "CA",
-                        image: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?auto=format&fit=crop&q=80&w=400&h=250"
+                        description: "Fresh, expertly crafted sushi and Japanese specialties."
                     },
                     {
-                        restaurant_id: 3,
-                        restaurant_name: "Taco Palace",
+                        id: 3,
+                        name: "Taco Palace",
                         cuisine: "Mexican",
                         rating: 4.5,
-                        bookedToday: 8,
+                        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=600&h=350",
                         city: "Santa Clara",
-                        state: "CA",
-                        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=400&h=250"
+                        description: "Authentic Mexican street food with a modern twist."
+                    },
+                    {
+                        id: 4,
+                        name: "Golden Dragon",
+                        cuisine: "Chinese",
+                        rating: 4.7,
+                        image: "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&q=80&w=600&h=350",
+                        city: "Oakland",
+                        description: "Traditional Chinese dishes with premium ingredients."
+                    },
+                    {
+                        id: 5,
+                        name: "Parisian Bistro",
+                        cuisine: "French",
+                        rating: 4.9,
+                        image: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=600&h=350",
+                        city: "San Francisco",
+                        description: "Classic French cuisine with a California influence."
+                    },
+                    {
+                        id: 6,
+                        name: "Curry House",
+                        cuisine: "Indian",
+                        rating: 4.6,
+                        image: "https://images.unsplash.com/photo-1585937421612-70a008356c36?auto=format&fit=crop&q=80&w=600&h=350",
+                        city: "Palo Alto",
+                        description: "Bold, aromatic Indian dishes made with traditional spices."
                     }
                 ]);
-            } catch (err) {
-                console.error('Error fetching recommendations:', err);
+            } catch (error) {
+                console.error("Error loading featured restaurants:", error);
             } finally {
-                setLoadingRecommendations(false);
+                setLoading(false);
             }
         };
-        
-        fetchRecommendedRestaurants();
+
+        loadFeaturedRestaurants();
     }, [user]);
 
+    // Handle reservation button click
+    const handleReserveTable = () => {
+        if (user) {
+            // If user is logged in, show search form
+            setShowSearchForm(true);
+            setShowResults(false);
+        } else {
+            // If user is not logged in, redirect to login page
+            navigate('/login');
+        }
+    };
+    
+    // Handle form field changes
     const handleChange = (e) => {
-        console.log(`Field changed: ${e.target.name} = ${e.target.value}`);
+        const { name, value } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [name]: value
         });
     };
 
+    // Handle search form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
             console.log('Searching with params:', formData);
-            const results = await getRestaurantAvailability(formData);
-            console.log(results)
-            setRestaurants(results || []);
-            setError(null);
+            // In a real app, this would be an API call
+            // For demo purposes, we'll simulate the API response with mock data
+            // const results = await getRestaurantAvailability(formData);
+            
+            // Simulate API response with filtered restaurants based on city/state if provided
+            let filteredResults = [...featuredRestaurants];
+            
+            if (formData.city) {
+                filteredResults = filteredResults.filter(restaurant => 
+                    restaurant.city.toLowerCase().includes(formData.city.toLowerCase())
+                );
+            }
+            
+            // Add availability info to each restaurant
+            const resultsWithAvailability = filteredResults.map(restaurant => ({
+                ...restaurant,
+                availableTimes: [
+                    {
+                        time: formData.time,
+                        tables: [
+                            { id: `${restaurant.id}-1`, seats: 2 },
+                            { id: `${restaurant.id}-2`, seats: 4 }
+                        ]
+                    },
+                    {
+                        time: `${parseInt(formData.time.split(':')[0]) + 1}:${formData.time.split(':')[1]}`,
+                        tables: [
+                            { id: `${restaurant.id}-3`, seats: 2 },
+                            { id: `${restaurant.id}-4`, seats: 4 }
+                        ]
+                    }
+                ]
+            }));
+            
+            setSearchResults(resultsWithAvailability);
+            setShowResults(true);
         } catch (err) {
             console.error('Search error:', err);
-            setError(typeof err === 'object' ? err.message : err);
-            setRestaurants([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Background and container styles
-    const pageStyle = {
-        position: 'relative',
-        minHeight: '100vh',
-        overflow: 'auto',
-        padding: '20px'
+    // Handle selecting a restaurant and time
+    const handleSelectTime = (restaurantId, time, tableId) => {
+        // Find the selected restaurant to pass its details
+        const selectedRestaurant = searchResults.find(r => r.id.toString() === restaurantId.toString());
+        
+        // Navigate to the booking review page with all required details
+        navigate('/booking-review', { 
+            state: { 
+                restaurantId,
+                restaurantName: selectedRestaurant ? selectedRestaurant.name : `Restaurant #${restaurantId}`,
+                restaurantAddress: selectedRestaurant ? 
+                    (selectedRestaurant.city ? `${selectedRestaurant.city}, CA` : 'San Francisco, CA') : 
+                    'San Francisco, CA',
+                date: new Date(formData.date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                }),
+                time,
+                people: parseInt(formData.people),
+                tableId,
+                tableType: `Table for ${formData.people}`
+            } 
+        });
     };
 
-    const backgroundStyle = {
-        position: 'fixed',
+    // Replace the current time and table buttons code with this:
+    const renderRestaurantCard = (restaurant) => {
+        return (
+        <div className="restaurant-card" key={restaurant.id}>
+            <div className="restaurant-info">
+            <img 
+                src={restaurant.image} 
+                alt={restaurant.name}
+                className="restaurant-image"
+            />
+            <div className="restaurant-details">
+                <h3>{restaurant.name}</h3>
+                <div className="rating">
+                {/* Star rating display */}
+                {'★'.repeat(Math.floor(restaurant.rating))}
+                {restaurant.rating % 1 >= 0.5 ? '½' : ''}
+                {'☆'.repeat(5 - Math.ceil(restaurant.rating))}
+                <span className="rating-number">{restaurant.rating}</span>
+                </div>
+                <p className="location"><span>📍</span> {restaurant.city}</p>
+                <p className="description">{restaurant.description}</p>
+                
+                {/* Available times - just display them, don't make them selectable */}
+                <div className="available-times">
+                <h4>Available Times:</h4>
+                <div className="time-list">
+                    {restaurant.availableTimes && restaurant.availableTimes.map(timeSlot => (
+                    <span key={timeSlot.time} className="time-badge">
+                        {parseInt(timeSlot.time) > 12
+                        ? `${parseInt(timeSlot.time) - 12}:${timeSlot.time.split(':')[1]} PM`
+                        : `${timeSlot.time} ${parseInt(timeSlot.time) === 12 ? 'PM' : 'AM'}`}
+                    </span>
+                    ))}
+                </div>
+                </div>
+                
+                {/* Single button for booking */}
+                <button 
+                className="book-table-btn"
+                onClick={() => handleBookTable(restaurant)}
+                >
+                Book Table
+                </button>
+            </div>
+            </div>
+        </div>
+        );
+    };
+
+    // Add this function to handle the button click
+    const handleBookTable = (restaurant) => {
+    // Navigate to the booking review page with restaurant details
+    navigate('/booking-review', { 
+        state: { 
+        restaurantId: restaurant.id,
+        restaurantName: restaurant.name,
+        restaurantAddress: restaurant.city,
+        date: formData.date, // From your search form
+        time: restaurant.availableTimes[0].time, // Default to first available time
+        people: parseInt(formData.people),
+        tableType: `Table for ${formData.people}`
+        } 
+    });
+    };
+
+    // Styles
+    const pageStyle = {
+        position: 'relative',
+    };
+
+    const heroStyle = {
+        position: 'relative',
+        minHeight: '80vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: '0 20px',
+        color: '#333',
+        overflow: 'hidden'
+    };
+
+    const heroBackgroundStyle = {
+        position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
@@ -139,45 +308,142 @@ const Home = () => {
         backgroundImage: 'url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        filter: 'blur(8px)',
-        opacity: 0.3,
+        filter: 'blur(3px) brightness(0.7)',
         zIndex: -1
     };
 
-    const heroContainerStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '60vh',
-        textAlign: 'center',
-        padding: '40px 20px'
+    const heroContentStyle = {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '40px',
+        borderRadius: '10px',
+        maxWidth: '800px',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
     };
 
     const heroTitleStyle = {
         fontSize: '48px',
         fontWeight: 'bold',
         marginBottom: '15px',
-        color: '#333',
-        fontFamily: 'Georgia, serif'
+        color: '#333'
     };
 
     const heroSubtitleStyle = {
-        fontSize: '24px',
+        fontSize: '20px',
         color: '#666',
-        marginBottom: '40px',
-        maxWidth: '700px'
+        marginBottom: '30px',
+        lineHeight: '1.6'
     };
 
     const buttonStyle = {
-        padding: '15px 30px',
-        backgroundColor: '#8B0000', // Dark red color for restaurant theme
+        padding: '16px 32px',
+        backgroundColor: '#8B0000',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
         cursor: 'pointer',
         fontWeight: 'bold',
         fontSize: '18px',
+        transition: 'all 0.3s ease',
+        textDecoration: 'none',
+        display: 'inline-block'
+    };
+
+    const hoverButtonStyle = {
+        backgroundColor: '#6B0000',
+        transform: 'translateY(-2px)',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
+    };
+
+    const sectionStyle = {
+        padding: '80px 20px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+    };
+
+    const sectionTitleStyle = {
+        fontSize: '36px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: '40px',
+        color: '#333',
+        position: 'relative',
+        paddingBottom: '15px'
+    };
+
+    const titleUnderlineStyle = {
+        content: '""',
+        position: 'absolute',
+        bottom: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '80px',
+        height: '3px',
+        backgroundColor: '#8B0000'
+    };
+
+    const featuredGridStyle = {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+        gap: '30px',
+        margin: '0 auto'
+    };
+
+    const cardStyle = {
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        cursor: 'pointer'
+    };
+
+    const cardHoverStyle = {
+        transform: 'translateY(-10px)',
+        boxShadow: '0 12px 20px rgba(0, 0, 0, 0.15)'
+    };
+
+    const cardImageStyle = {
+        width: '100%',
+        height: '200px',
+        objectFit: 'cover'
+    };
+
+    const cardContentStyle = {
+        padding: '20px'
+    };
+
+    const cuisineTagStyle = {
+        display: 'inline-block',
+        padding: '5px 10px',
+        backgroundColor: '#f0f0f0',
+        borderRadius: '20px',
+        fontSize: '12px',
+        marginBottom: '10px'
+    };
+
+    const ratingStyle = {
+        color: '#FFD700',
+        marginBottom: '10px',
+        fontSize: '18px'
+    };
+
+    const locationStyle = {
+        color: '#666',
+        fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '15px'
+    };
+
+    const cardButtonStyle = {
+        backgroundColor: '#8B0000',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '8px 16px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        width: '100%',
         transition: 'background-color 0.3s ease'
     };
 
@@ -212,7 +478,7 @@ const Home = () => {
 
     const searchButtonStyle = {
         padding: '12px 20px',
-        backgroundColor: '#8B0000', // Dark red color for restaurant theme
+        backgroundColor: '#8B0000',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
@@ -223,69 +489,91 @@ const Home = () => {
         marginTop: '10px'
     };
 
-    const resultsContainerStyle = {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '20px',
-        marginTop: '30px'
-    };
-
-    const cardStyle = {
-        backgroundColor: 'white',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        padding: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        transition: 'transform 0.3s ease',
-        cursor: 'pointer'
-    };
-
-    const bookButtonStyle = {
-        display: 'inline-block',
+    const timeButtonStyle = {
+        padding: '8px 16px',
+        margin: '0 5px 10px 0',
         backgroundColor: '#8B0000',
         color: 'white',
-        padding: '8px 15px',
-        textDecoration: 'none',
+        border: 'none',
         borderRadius: '4px',
-        marginTop: '15px',
+        cursor: 'pointer',
         fontWeight: 'bold',
+        transition: 'background-color 0.3s ease'
+    };
+
+    const howItWorksStyle = {
+        backgroundColor: 'white',
+        padding: '80px 20px'
+    };
+
+    const stepContainerStyle = {
+        display: 'flex',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        maxWidth: '1200px',
+        margin: '0 auto'
+    };
+
+    const stepStyle = {
+        flex: '1 1 300px',
+        margin: '20px',
         textAlign: 'center'
     };
-    
-    const restaurantImageStyle = {
-        width: '100%',
-        height: '180px',
-        objectFit: 'cover',
-        borderRadius: '4px',
-        marginBottom: '15px'
+
+    const stepNumberStyle = {
+        display: 'inline-block',
+        width: '60px',
+        height: '60px',
+        lineHeight: '60px',
+        backgroundColor: '#8B0000',
+        color: 'white',
+        borderRadius: '50%',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        marginBottom: '20px'
     };
 
-    return (
-        <div style={pageStyle}>
-            <div style={backgroundStyle}></div>
+    const testimonialSectionStyle = {
+        backgroundColor: '#f5f5f5',
+        padding: '80px 20px'
+    };
 
-            {!showSearchForm ? (
-                <div style={heroContainerStyle}>
-                    {/* Personalized welcome message for logged in users */}
-                    <h1 style={heroTitleStyle}>
-                        {user 
-                            ? user.role === 'Admin'
-                                ? 'Hello Admin, Welcome Back!'
-                                : `Hello, Welcome ${user.name || user.username || 'Back'}!` 
-                            : 'Welcome to BookTable'}
-                    </h1>
-                    <p style={heroSubtitleStyle}>
-                        {user
-                            ? user.role === 'Admin' 
-                                ? "Manage restaurant approvals, view analytics, and monitor platform activity from your admin dashboard."
-                                : user.role === 'RestaurantManager' 
-                                    ? "Manage your restaurant listings, update availability, and track reservations all in one place."
-                                    : "Let's explore restaurants near you. Find and book your perfect dining experience."
-                            : "The easiest way to discover and reserve tables at your favorite restaurants. Find the perfect dining experience for any occasion."}
-                    </p>
-                    
-                    {/* Conditional rendering based on user role */}
-                    {user && user.role === 'Admin' ? (
+    const testimonialStyle = {
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        margin: '20px',
+        position: 'relative'
+    };
+
+    const quoteStyle = {
+        fontSize: '80px',
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        color: '#f0f0f0',
+        fontFamily: 'Georgia, serif',
+        lineHeight: '1'
+    };
+
+    const resultsContainerStyle = {
+        maxWidth: '1000px',
+        margin: '0 auto',
+        padding: '20px'
+    };
+
+    // Render different views based on user role
+    if (user && user.role === 'Admin') {
+        return (
+            <div style={pageStyle}>
+                <section style={heroStyle}>
+                    <div style={heroBackgroundStyle}></div>
+                    <div style={heroContentStyle}>
+                        <h1 style={heroTitleStyle}>Hello Admin, Welcome Back!</h1>
+                        <p style={heroSubtitleStyle}>
+                            Manage restaurant approvals, view analytics, and monitor platform activity from your admin dashboard.
+                        </p>
                         <Link
                             to="/admin"
                             style={{
@@ -293,12 +581,33 @@ const Home = () => {
                                 textDecoration: 'none',
                                 display: 'inline-block'
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                            onMouseOver={(e) => {
+                                Object.assign(e.currentTarget.style, hoverButtonStyle);
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#8B0000';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
                         >
                             Go to Admin Dashboard
                         </Link>
-                    ) : user && user.role === 'RestaurantManager' ? (
+                    </div>
+                </section>
+            </div>
+        );
+    }
+
+    if (user && user.role === 'RestaurantManager') {
+        return (
+            <div style={pageStyle}>
+                <section style={heroStyle}>
+                    <div style={heroBackgroundStyle}></div>
+                    <div style={heroContentStyle}>
+                        <h1 style={heroTitleStyle}>Welcome, Restaurant Manager!</h1>
+                        <p style={heroSubtitleStyle}>
+                            Manage your restaurant listings, update availability, and track reservations all in one place.
+                        </p>
                         <Link
                             to="/manager"
                             style={{
@@ -306,255 +615,484 @@ const Home = () => {
                                 textDecoration: 'none',
                                 display: 'inline-block'
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                            onMouseOver={(e) => {
+                                Object.assign(e.currentTarget.style, hoverButtonStyle);
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#8B0000';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
                         >
                             Go to Dashboard
                         </Link>
-                    ) : (
-                        <button
-                            style={buttonStyle}
-                            onClick={() => setShowSearchForm(true)}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
-                        >
-                            Reserve a Table
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <>
-                    <div style={containerStyle}>
-                        <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Find a Restaurant</h2>
-
-                        <form onSubmit={handleSubmit}>
-                            <div style={formGroupStyle}>
-                                <label style={labelStyle}>Date:</label>
-                                <select
-                                    name="date"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                >
-                                    {dates.map(date => (
-                                        <option key={date.value} value={date.value}>
-                                            {date.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div style={formGroupStyle}>
-                                <label style={labelStyle}>Time:</label>
-                                <select
-                                    name="time"
-                                    value={formData.time}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                >
-                                    {times.map(time => (
-                                        <option key={time} value={time}>
-                                            {parseInt(time) > 12
-                                                ? `${parseInt(time) - 12}:${time.split(':')[1]} PM`
-                                                : `${time} ${parseInt(time) === 12 ? 'PM' : 'AM'}`}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div style={formGroupStyle}>
-                                <label style={labelStyle}>Number of People:</label>
-                                <input
-                                    type="number"
-                                    name="people"
-                                    min="1"
-                                    max="20"
-                                    value={formData.people}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                />
-                            </div>
-
-                            <div style={formGroupStyle}>
-                                <label style={labelStyle}>City:</label>
-                                <input
-                                    type="text"
-                                    name="city"
-                                    placeholder="Enter city"
-                                    value={formData.city}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                />
-                            </div>
-
-                            <div style={formGroupStyle}>
-                                <label style={labelStyle}>State:</label>
-                                <input
-                                    type="text"
-                                    name="state"
-                                    placeholder="Enter state"
-                                    value={formData.state}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                />
-                            </div>
-
-                            <div style={formGroupStyle}>
-                                <label style={labelStyle}>ZIP Code:</label>
-                                <input
-                                    type="text"
-                                    name="zip_code"
-                                    placeholder="Enter ZIP code"
-                                    value={formData.zip_code}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button
-                                    type="button"
-                                    style={{
-                                        ...searchButtonStyle,
-                                        backgroundColor: '#555',
-                                        flex: '1'
-                                    }}
-                                    onClick={() => setShowSearchForm(false)}
-                                >
-                                    Back
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    style={{
-                                        ...searchButtonStyle,
-                                        flex: '2'
-                                    }}
-                                >
-                                    {loading ? 'Searching...' : 'Find Tables'}
-                                </button>
-                            </div>
-                        </form>
                     </div>
+                </section>
+            </div>
+        );
+    }
 
-                    {error && (
-                        <div style={{
-                            ...containerStyle,
-                            backgroundColor: '#ffebee',
-                            color: '#c62828',
-                            marginTop: '20px'
-                        }}>
-                            <p>{error}</p>
-                        </div>
-                    )}
-
-                    {restaurants.length > 0 && (
-                        <div style={containerStyle}>
-                            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Available Restaurants</h2>
-
-                            <div style={resultsContainerStyle}>
-                                {restaurants.map((restaurant, index) => (
-                                    <div
-                                        key={index}
-                                        style={cardStyle}
-                                        onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-                                        onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                                    >
-                                        <h3 style={{ marginTop: 0 }}>{restaurant.restaurant_name}</h3>
-                                        <p style={{ color: '#666' }}>Cuisine: {restaurant.cuisine}</p>
-                                        <p>Rating: {restaurant.rating} ★</p>
-                                        <p>Booked Today: {restaurant.timesBooked ?? restaurant.bookedToday ?? 0}</p>
-                                        <p style={{ fontSize: '14px' }}>
-                                            {restaurant.city}, {restaurant.state}
-                                        </p>
-
-                                        <Link
-                                            to={`/booking?restaurantId=${restaurant.restaurant_id || index}&table_id=${restaurant.table_id}&time=${restaurant.available_time}&date=${formData.date}&people=${formData.people}`}
-                                            style={bookButtonStyle}
-                                        >
-                                            Book at {restaurant.available_time}
-                                        </Link>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {restaurants.length === 0 && !loading && (
-                        <div style={{
-                            ...containerStyle,
-                            textAlign: 'center',
-                            marginTop: '20px'
-                        }}>
-                            <p>No restaurants found. Try different search criteria.</p>
-                        </div>
-                    )}
-                </>
-            )}
-            
-            {/* Recommended Restaurants Section - Only show for customers */}
-            {user && user.role === 'Customer' && !showSearchForm && (
-                <div style={containerStyle}>
-                    <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Recommended For You</h2>
-                    
-                    {loadingRecommendations ? (
-                        <div style={{ textAlign: 'center', padding: '20px' }}>
-                            <p>Loading recommendations...</p>
-                        </div>
-                    ) : (
-                        <div style={resultsContainerStyle}>
-                            {recommendedRestaurants.map((restaurant) => (
-                                <div
-                                    key={restaurant.restaurant_id}
-                                    style={cardStyle}
-                                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-                                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+    // Customer view or non-logged in user
+    if (user) {
+        // Logged in customer
+        return (
+            <div style={pageStyle}>
+                {!showSearchForm ? (
+                    <>
+                        {/* Hero Section */}
+                        <section style={heroStyle}>
+                            <div style={heroBackgroundStyle}></div>
+                            <div style={heroContentStyle}>
+                                <h1 style={heroTitleStyle}>
+                                    Welcome Back, {user.name || 'Friend'}!
+                                </h1>
+                                <p style={heroSubtitleStyle}>
+                                    Let's explore restaurants near you. Find and book your perfect dining experience.
+                                </p>
+                                <button
+                                    style={buttonStyle}
+                                    onClick={handleReserveTable}
+                                    onMouseOver={(e) => {
+                                        Object.assign(e.currentTarget.style, hoverButtonStyle);
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#8B0000';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }}
                                 >
-                                    {restaurant.image && (
-                                        <img 
-                                            src={restaurant.image} 
-                                            alt={restaurant.restaurant_name}
-                                            style={restaurantImageStyle}
+                                    Reserve a Table
+                                </button>
+                            </div>
+                        </section>
+
+                        {/* Featured Restaurants Section */}
+                        <section style={sectionStyle}>
+                            <h2 style={sectionTitleStyle}>
+                                Featured Restaurants
+                                <div style={titleUnderlineStyle}></div>
+                            </h2>
+                            
+                            {loading ? (
+                                <div style={{ textAlign: 'center', padding: '40px' }}>Loading featured restaurants...</div>
+                            ) : (
+                                <div style={featuredGridStyle}>
+                                    {featuredRestaurants.map((restaurant) => (
+                                        <div 
+                                            key={restaurant.id} 
+                                            style={cardStyle}
+                                            onMouseOver={(e) => {
+                                                Object.assign(e.currentTarget.style, cardHoverStyle);
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                                            }}
+                                        >
+                                            <img 
+                                                src={restaurant.image} 
+                                                alt={restaurant.name} 
+                                                style={cardImageStyle}
+                                            />
+                                            <div style={cardContentStyle}>
+                                                <div style={cuisineTagStyle}>{restaurant.cuisine}</div>
+                                                <h3 style={{ margin: '10px 0' }}>{restaurant.name}</h3>
+                                                <div style={ratingStyle}>
+                                                    {'★'.repeat(Math.floor(restaurant.rating))}
+                                                    {restaurant.rating % 1 >= 0.5 ? '½' : ''}
+                                                    {'☆'.repeat(5 - Math.ceil(restaurant.rating))}
+                                                    <span style={{ color: '#666', fontSize: '14px', marginLeft: '5px' }}>
+                                                        {restaurant.rating}
+                                                    </span>
+                                                </div>
+                                                <div style={locationStyle}>
+                                                    <span style={{ marginRight: '5px' }}>📍</span> {restaurant.city}
+                                                </div>
+                                                <p style={{ margin: '0 0 20px 0', color: '#666' }}>
+                                                    {restaurant.description}
+                                                </p>
+                                                <button 
+                                                    style={cardButtonStyle}
+                                                    onClick={handleReserveTable}
+                                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
+                                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                                                >
+                                                    Book Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </>
+                ) : (
+                    // Show search form for logged in customers
+                    <div style={{ padding: '40px 20px' }}>
+                        {!showResults ? (
+                            <div style={containerStyle}>
+                                <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Find a Restaurant</h2>
+
+                                <form onSubmit={handleSubmit}>
+                                    <div style={formGroupStyle}>
+                                        <label style={labelStyle}>Date:</label>
+                                        <select
+                                            name="date"
+                                            value={formData.date}
+                                            onChange={handleChange}
+                                            style={inputStyle}
+                                        >
+                                            {dates.map(date => (
+                                                <option key={date.value} value={date.value}>
+                                                    {date.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div style={formGroupStyle}>
+                                        <label style={labelStyle}>Time:</label>
+                                        <select
+                                            name="time"
+                                            value={formData.time}
+                                            onChange={handleChange}
+                                            style={inputStyle}
+                                        >
+                                            {times.map(time => (
+                                                <option key={time} value={time}>
+                                                    {parseInt(time) > 12
+                                                        ? `${parseInt(time) - 12}:${time.split(':')[1]} PM`
+                                                        : `${time} ${parseInt(time) === 12 ? 'PM' : 'AM'}`}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div style={formGroupStyle}>
+                                        <label style={labelStyle}>Number of People:</label>
+                                        <input
+                                            type="number"
+                                            name="people"
+                                            min="1"
+                                            max="20"
+                                            value={formData.people}
+                                            onChange={handleChange}
+                                            style={inputStyle}
                                         />
-                                    )}
-                                    
-                                    <h3 style={{ marginTop: 0 }}>{restaurant.restaurant_name}</h3>
-                                    <p style={{ color: '#666' }}>Cuisine: {restaurant.cuisine}</p>
-                                    <p>Rating: {restaurant.rating} ★</p>
-                                    <p>Booked Today: {restaurant.bookedToday || 0}</p>
-                                    <p style={{ fontSize: '14px' }}>
-                                        {restaurant.city}, {restaurant.state}
-                                    </p>
+                                    </div>
+
+                                    <div style={formGroupStyle}>
+                                        <label style={labelStyle}>City:</label>
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            placeholder="Enter city"
+                                            value={formData.city}
+                                            onChange={handleChange}
+                                            style={inputStyle}
+                                        />
+                                    </div>
+
+                                    <div style={formGroupStyle}>
+                                        <label style={labelStyle}>State:</label>
+                                        <input
+                                            type="text"
+                                            name="state"
+                                            placeholder="Enter state"
+                                            value={formData.state}
+                                            onChange={handleChange}
+                                            style={inputStyle}
+                                        />
+                                    </div>
+
+                                    <div style={formGroupStyle}>
+                                        <label style={labelStyle}>ZIP Code:</label>
+                                        <input
+                                            type="text"
+                                            name="zip_code"
+                                            placeholder="Enter ZIP code"
+                                            value={formData.zip_code}
+                                            onChange={handleChange}
+                                            style={inputStyle}
+                                        />
+                                    </div>
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <Link
-                                            to={`/restaurant/${restaurant.restaurant_id}`}
+                                        <button
+                                            type="button"
                                             style={{
-                                                ...bookButtonStyle,
-                                                backgroundColor: '#444',
-                                                flex: '1',
-                                                textAlign: 'center'
+                                                ...searchButtonStyle,
+                                                backgroundColor: '#555',
+                                                flex: '1'
+                                            }}
+                                            onClick={() => setShowSearchForm(false)}
+                                        >
+                                            Back
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            style={{
+                                                ...searchButtonStyle,
+                                                flex: '2'
                                             }}
                                         >
-                                            Details
-                                        </Link>
-                                        <Link
-                                            to={`/booking?restaurantId=${restaurant.restaurant_id}&date=${today}&people=2`}
-                                            style={{
-                                                ...bookButtonStyle,
-                                                flex: '1',
-                                                textAlign: 'center'
-                                            }}
-                                        >
-                                            Book Now
-                                        </Link>
+                                            {loading ? 'Searching...' : 'Find Tables'}
+                                        </button>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                                </form>
+                            </div>
+                        ) : (
+                            // Show search results
+                            <div style={resultsContainerStyle}>
+                                <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>
+                                    Available Restaurants for {formData.people} people on {
+                                        new Date(formData.date).toLocaleDateString('en-US', { 
+                                            weekday: 'long', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        })
+                                    }
+                                </h2>
+                                
+                                {loading ? (
+                                    <div style={{ textAlign: 'center', padding: '40px' }}>Searching for available tables...</div>
+                                ) : (
+                                    <>
+                                        {searchResults.length === 0 ? (
+                                            <div style={{ textAlign: 'center', padding: '40px' }}>
+                                                <p>No restaurants available for your search criteria.</p>
+                                                <button
+                                                    style={{
+                                                        ...buttonStyle,
+                                                        marginTop: '20px'
+                                                    }}
+                                                    onClick={() => setShowResults(false)}
+                                                >
+                                                    Try Another Search
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                                    <button
+                                                        style={{
+                                                            ...buttonStyle,
+                                                            padding: '10px 20px',
+                                                            backgroundColor: '#555'
+                                                        }}
+                                                        onClick={() => setShowResults(false)}
+                                                    >
+                                                        Modify Search
+                                                    </button>
+                                                </div>
+                                                
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                                                    {searchResults.map(restaurant => renderRestaurantCard(restaurant))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    }
+    // Non-logged in user - landing page with extra sections
+    return (
+        <div style={pageStyle}>
+            {/* Hero Section */}
+            <section style={heroStyle}>
+                <div style={heroBackgroundStyle}></div>
+                <div style={heroContentStyle}>
+                    <h1 style={heroTitleStyle}>Welcome to BookTable</h1>
+                    <p style={heroSubtitleStyle}>
+                        The easiest way to discover and reserve tables at your favorite restaurants. 
+                        Find the perfect dining experience for any occasion.
+                    </p>
+                    <button
+                        style={buttonStyle}
+                        onClick={handleReserveTable}
+                        onMouseOver={(e) => {
+                            Object.assign(e.currentTarget.style, hoverButtonStyle);
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#8B0000';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
+                        Reserve a Table
+                    </button>
                 </div>
-            )}
+            </section>
+
+            {/* Featured Restaurants Section */}
+            <section style={sectionStyle}>
+                <h2 style={sectionTitleStyle}>
+                    Featured Restaurants
+                    <div style={titleUnderlineStyle}></div>
+                </h2>
+                
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>Loading featured restaurants...</div>
+                ) : (
+                    <div style={featuredGridStyle}>
+                        {featuredRestaurants.map((restaurant) => (
+                            <div 
+                                key={restaurant.id} 
+                                style={cardStyle}
+                                onMouseOver={(e) => {
+                                    Object.assign(e.currentTarget.style, cardHoverStyle);
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                                }}
+                            >
+                                <img 
+                                    src={restaurant.image} 
+                                    alt={restaurant.name} 
+                                    style={cardImageStyle}
+                                />
+                                <div style={cardContentStyle}>
+                                    <div style={cuisineTagStyle}>{restaurant.cuisine}</div>
+                                    <h3 style={{ margin: '10px 0' }}>{restaurant.name}</h3>
+                                    <div style={ratingStyle}>
+                                        {'★'.repeat(Math.floor(restaurant.rating))}
+                                        {restaurant.rating % 1 >= 0.5 ? '½' : ''}
+                                        {'☆'.repeat(5 - Math.ceil(restaurant.rating))}
+                                        <span style={{ color: '#666', fontSize: '14px', marginLeft: '5px' }}>
+                                            {restaurant.rating}
+                                        </span>
+                                    </div>
+                                    <div style={locationStyle}>
+                                        <span style={{ marginRight: '5px' }}>📍</span> {restaurant.city}
+                                    </div>
+                                    <p style={{ margin: '0 0 20px 0', color: '#666' }}>
+                                        {restaurant.description}
+                                    </p>
+                                    <button 
+                                        style={cardButtonStyle}
+                                        onClick={handleReserveTable}
+                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#6B0000'}
+                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8B0000'}
+                                    >
+                                        Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+            {/* How It Works Section - Only for non-logged in users */}
+            <section style={howItWorksStyle}>
+                <h2 style={sectionTitleStyle}>
+                    How It Works
+                    <div style={titleUnderlineStyle}></div>
+                </h2>
+                <div style={stepContainerStyle}>
+                    <div style={stepStyle}>
+                        <div style={stepNumberStyle}>1</div>
+                        <h3>Search</h3>
+                        <p>Find restaurants by location, cuisine, or availability</p>
+                    </div>
+                    <div style={stepStyle}>
+                        <div style={stepNumberStyle}>2</div>
+                        <h3>Reserve</h3>
+                        <p>Choose your preferred date, time, and party size</p>
+                    </div>
+                    <div style={stepStyle}>
+                        <div style={stepNumberStyle}>3</div>
+                        <h3>Enjoy</h3>
+                        <p>Receive confirmation and enjoy your dining experience</p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials Section - Only for non-logged in users */}
+            <section style={testimonialSectionStyle}>
+                <h2 style={sectionTitleStyle}>
+                    What Our Users Say
+                    <div style={titleUnderlineStyle}></div>
+                </h2>
+                <div style={stepContainerStyle}>
+                    <div style={testimonialStyle}>
+                        <div style={quoteStyle}>"</div>
+                        <p style={{ position: 'relative', zIndex: 1 }}>
+                            BookTable made finding a last-minute anniversary dinner so easy! We got a table at our favorite restaurant despite it being a busy Saturday night.
+                        </p>
+                        <p style={{ fontWeight: 'bold', marginBottom: 0 }}>- Sarah J.</p>
+                    </div>
+                    <div style={testimonialStyle}>
+                        <div style={quoteStyle}>"</div>
+                        <p style={{ position: 'relative', zIndex: 1 }}>
+                            As a foodie who loves trying new restaurants, this app has been a game-changer. The recommendations are always spot-on!
+                        </p>
+                        <p style={{ fontWeight: 'bold', marginBottom: 0 }}>- David M.</p>
+                    </div>
+                </div>
+            </section>
+            {/* Call to Action Section */}
+            <section style={{
+                backgroundColor: '#f9f9f9',
+                padding: '60px 20px',
+                textAlign: 'center'
+            }}>
+                <h2 style={sectionTitleStyle}>
+                    Ready to Find Your Perfect Table?
+                    <div style={titleUnderlineStyle}></div>
+                </h2>
+                <p style={{ maxWidth: '600px', margin: '0 auto 30px auto', fontSize: '18px' }}>
+                    Join thousands of diners who book with BookTable every day
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+                    <Link 
+                        to="/register" 
+                        style={{
+                            ...buttonStyle,
+                            textDecoration: 'none',
+                            backgroundColor: '#4CAF50'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#388E3C';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#4CAF50';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
+                        Sign Up
+                    </Link>
+                    <Link 
+                        to="/login" 
+                        style={{
+                            ...buttonStyle,
+                            textDecoration: 'none',
+                            backgroundColor: '#2196F3'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#1976D2';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#2196F3';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
+                        Login
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 };

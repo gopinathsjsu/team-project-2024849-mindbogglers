@@ -339,3 +339,91 @@ body {
 .App-link {
   color: #61dafb;
 }
+
+/* Add this to your CSS file */
+.restaurant-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+.restaurant-info {
+  display: flex;
+  gap: 20px;
+}
+
+.restaurant-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.restaurant-details {
+  flex: 1;
+}
+
+.restaurant-details h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.rating {
+  color: #FFD700;
+  margin-bottom: 10px;
+}
+
+.rating-number {
+  color: #666;
+  margin-left: 5px;
+}
+
+.location {
+  color: #666;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.available-times {
+  margin: 15px 0;
+}
+
+.available-times h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.time-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.time-badge {
+  background-color: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.book-table-btn {
+  background-color: #8B0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.book-table-btn:hover {
+  background-color: #6B0000;
+}
