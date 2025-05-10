@@ -1,4 +1,4 @@
-/* BookingConfirmation.css */
+/* Container for the whole booking confirmation view */
 .booking-confirmation-container {
   display: flex;
   justify-content: center;
@@ -7,6 +7,7 @@
   min-height: 80vh;
 }
 
+/* Card wrapper for confirmation content */
 .confirmation-card {
   background: white;
   border-radius: 10px;
@@ -16,6 +17,7 @@
   width: 100%;
 }
 
+/* Header section with title and confirmation badge */
 .confirmation-header {
   display: flex;
   justify-content: space-between;
@@ -31,6 +33,7 @@
   font-size: 1.8rem;
 }
 
+/* Green confirmation badge */
 .success-badge {
   background-color: #28a745;
   color: white;
@@ -42,6 +45,7 @@
   font-weight: 500;
 }
 
+/* Section for core reservation details */
 .confirmation-details {
   padding: 1rem 0;
 }
@@ -53,6 +57,7 @@
   font-size: 1.5rem;
 }
 
+/* Group row for date, time, party, etc. */
 .detail-row {
   display: flex;
   justify-content: space-between;
@@ -60,6 +65,7 @@
   flex-wrap: wrap;
 }
 
+/* Individual detail block (icon + label + value) */
 .detail-item {
   display: flex;
   align-items: center;
@@ -72,6 +78,7 @@
   font-weight: 500;
 }
 
+/* Address block with icon and map link */
 .restaurant-address {
   margin-top: 1.5rem;
   padding: 1rem;
@@ -85,6 +92,7 @@
   color: #dc3545;
 }
 
+/* Google Maps link style */
 .map-link {
   display: inline-block;
   margin-top: 0.5rem;
@@ -96,6 +104,7 @@
   text-decoration: underline;
 }
 
+/* Section for confirmation sending options (email/SMS) */
 .confirmation-options {
   margin-top: 2rem;
   padding: 1rem;
@@ -108,12 +117,14 @@
   margin-bottom: 0.5rem;
 }
 
+/* Row for each checkbox option */
 .checkbox-row {
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
 }
 
+/* Input box for phone number (when SMS is selected) */
 .phone-input {
   margin-left: 1rem;
   padding: 0.5rem;
@@ -121,6 +132,7 @@
   border-radius: 4px;
 }
 
+/* Button to trigger confirmation sending */
 .send-confirmation-btn {
   margin-top: 1rem;
   background-color: #0056b3;
@@ -131,16 +143,19 @@
   cursor: pointer;
 }
 
+/* Disabled state for the send button */
 .send-confirmation-btn:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
 }
 
+/* Text for cancellation policy note */
 .cancellation-policy {
   margin-top: 1.5rem;
   font-size: 0.9rem;
 }
 
+/* Container for action buttons at the bottom (calendar + cancel) */
 .confirmation-actions {
   display: flex;
   justify-content: space-between;
@@ -149,6 +164,7 @@
   padding-top: 1.5rem;
 }
 
+/* Calendar button styling */
 .calendar-btn {
   background-color: #17a2b8;
   color: white;
@@ -158,6 +174,7 @@
   cursor: pointer;
 }
 
+/* Cancel button with red outline */
 .cancel-btn {
   background-color: white;
   color: #dc3545;
@@ -167,25 +184,26 @@
   cursor: pointer;
 }
 
+/* Hover effect for cancel button */
 .cancel-btn:hover {
   background-color: #dc3545;
   color: white;
 }
 
+/* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {
   .detail-row {
     flex-direction: column;
   }
-  
+
   .confirmation-actions {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .confirmation-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
 }
-
