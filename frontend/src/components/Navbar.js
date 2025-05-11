@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
+import { FaSignOutAlt } from 'react-icons/fa';
+import './Navbar.css'; // make sure this file exists or update accordingly
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
@@ -19,9 +21,7 @@ const Navbar = () => {
                 {user ? (
                     <>
                         {user.role === 'Customer' && (
-                            <>
-                                <Link to="/my-reservations">My Reservations</Link>
-                            </>
+                            <Link to="/my-reservations">My Reservations</Link>
                         )}
                         {user.role === 'RestaurantManager' && (
                             <Link to="/manager">Manager Dashboard</Link>
@@ -36,6 +36,7 @@ const Navbar = () => {
                             onClick={handleLogout}
                             className="logout-btn"
                         >
+                            <FaSignOutAlt style={{ marginRight: '6px' }} />
                             Logout
                         </button>
                     </>

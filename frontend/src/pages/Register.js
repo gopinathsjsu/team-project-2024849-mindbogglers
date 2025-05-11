@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../api';
 import { AuthContext } from '../AuthContext';
 import PasswordRequirements from '../components/PasswordRequirements';
+import './Register.css'; // ⬅️ Add a CSS file to style this properly
 
 const Register = () => {
     const [userData, setUserData] = useState({
@@ -12,11 +13,11 @@ const Register = () => {
         role: 'Customer'
     });
     const [errorMessage, setErrorMessage] = useState('');
-    const [showPassword, setShowPassword] = useState(false); // Add this state
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const handleChange = e => {
+    const handleChange = (e) => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
     };
 
@@ -24,100 +25,72 @@ const Register = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleSubmit = async e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            console.log('Sending registration data:', userData);
-            const response = await registerUser(userData);
-            console.log('Registration response:', response);
-
-            // After registration, attempt to login
-            await login({
-                email: userData.email,
-                password: userData.password
-            });
-
-            setErrorMessage('');
+            await registerUser(userData);
+            await login({ email: userData.email, password: userData.password });
             navigate('/');
         } catch (err) {
-            console.error('Registration error:', err);
-
-            // Safely extract error message as a string
-            if (typeof err === 'object') {
-                if (err.message) {
-                    setErrorMessage(err.message);
-                } else if (err.msg) {
-                    setErrorMessage(err.msg);
-                } else {
-                    setErrorMessage('Registration failed. Please try again.');
-                }
-            } else if (typeof err === 'string') {
-                setErrorMessage(err);
-            } else {
-                setErrorMessage('An unknown error occurred');
-            }
+            if (typeof err === 'string') setErrorMessage(err);
+            else setErrorMessage(err.message || 'Registration failed.');
         }
     };
 
     return (
-        <div className="container">
-            <h1 className="page-title">Register</h1>
-            <form onSubmit={handleSubmit} className="booking-form">
+        <div className="register-container">
+            <form className="register-card" onSubmit={handleSubmit}>
+                <h2 className="form-title">Register</h2>
+
+                <label>Full Name</label>
                 <input
                     type="text"
                     name="full_name"
-                    placeholder="Full Name"
                     value={userData.full_name}
                     onChange={handleChange}
                     required
                 />
+
+                <label>Email</label>
                 <input
                     type="email"
                     name="email"
-                    placeholder="Email"
                     value={userData.email}
                     onChange={handleChange}
                     required
                 />
-                <div style={{ width: '100%', position: 'relative' }}>
+
+                <label>Password</label>
+                <div className="password-wrapper">
                     <input
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         name="password"
-                        placeholder="Password"
                         value={userData.password}
                         onChange={handleChange}
                         required
                     />
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
+                        className="toggle-password"
                         onClick={togglePasswordVisibility}
-                        style={{
-                            position: 'absolute',
-                            right: '10px',
-                            top: '10px',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer'
-                        }}
                     >
-                        {showPassword ? "👁️‍🗨️" : "👁️"}
+                        {showPassword ? '🙈' : '👁️'}
                     </button>
-                    {userData.password !== undefined && (
-                        <PasswordRequirements password={userData.password} />
-                    )}
                 </div>
-                <select 
-                    name="role" 
-                    value={userData.role} 
-                    onChange={handleChange}
-                >
+
+                <PasswordRequirements password={userData.password} />
+
+                <label>Role:</label>
+                <select name="role" value={userData.role} onChange={handleChange}>
                     <option value="Customer">Customer</option>
                     <option value="RestaurantManager">Restaurant Manager</option>
                     <option value="Admin">Admin</option>
                 </select>
-                <button type="submit" className="submit-btn">Register</button>
+
+                <button type="submit" className="register-btn">Register</button>
+
+                {errorMessage && <p className="error-msg">{errorMessage}</p>}
             </form>
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
         </div>
     );
 };

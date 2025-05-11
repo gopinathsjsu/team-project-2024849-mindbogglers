@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { getRestaurantDetails, addReview } from '../api';
 import { AuthContext } from '../AuthContext';
-import './RestaurantDetails.css'; // Create this CSS file for styling
+import './RestaurantDetails.css';
 
 const RestaurantDetails = () => {
     const { id } = useParams();
@@ -34,13 +34,10 @@ const RestaurantDetails = () => {
             setError('You must be logged in to leave a review');
             return;
         }
-
         try {
             await addReview(id, newReview);
-            // Refresh restaurant details to show the new review
             const response = await getRestaurantDetails(id);
             setRestaurant(response.data);
-            // Reset form
             setNewReview({ rating: 5, comment: '' });
         } catch (err) {
             setError('Failed to submit review: ' + err.message);
@@ -63,8 +60,8 @@ const RestaurantDetails = () => {
                         ))}
                         <span className="rating-text">({restaurant.rating || 'No ratings yet'})</span>
                     </div>
-                    {restaurant.bookings_today !== undefined && (
-                        <span className="bookings-today">{restaurant.bookings_today} bookings today</span>
+                    {restaurant.total_bookings !== undefined && (
+                        <span className="bookings-today">{restaurant.total_bookings} bookings today</span>
                     )}
                 </div>
             </div>
@@ -73,17 +70,17 @@ const RestaurantDetails = () => {
                 <div className="info-col">
                     <div className="info-card">
                         <h3>About</h3>
-                        <p className="restaurant-description">{restaurant.description}</p>
+                        <p className="restaurant-description">{restaurant.description || 'No description available.'}</p>
                         <div className="contact-info">
-                            <p><strong>Address:</strong> {restaurant.address}</p>
-                            <p><strong>Contact:</strong> {restaurant.contact}</p>
+                            <p><strong>Address:</strong> {restaurant.address || 'Not available'}</p>
+                            <p><strong>Contact:</strong> {restaurant.contact || 'Not available'}</p>
                             <p><strong>Hours:</strong> {restaurant.opening_hours || 'Not specified'}</p>
                         </div>
                     </div>
 
-                    <div className="reviews-section">
+                    <div id="reviews" className="reviews-section">
                         <h3>Customer Reviews</h3>
-                        {restaurant.reviews && restaurant.reviews.length ? (
+                        {restaurant.reviews?.length > 0 ? (
                             <div className="reviews-list">
                                 {restaurant.reviews.map((review, index) => (
                                     <div key={index} className="review-card">
@@ -97,21 +94,25 @@ const RestaurantDetails = () => {
                                         </div>
                                         <p className="review-text">{review.comment}</p>
                                         {review.date && (
-                                            <p className="review-date">{new Date(review.date).toLocaleDateString()}</p>
+                                            <p className="review-date">
+                                                {new Date(review.date).toLocaleString(undefined, {
+                                                    year: 'numeric', month: 'short', day: 'numeric'
+                                                })}
+                                            </p>
                                         )}
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="no-reviews">No reviews available yet. Be the first to leave a review!</p>
+                            <p className="no-reviews">No reviews yet. Be the first to leave one!</p>
                         )}
-                        
+
                         {user && (
                             <div className="add-review-section">
                                 <h4>Leave a Review</h4>
                                 <form onSubmit={handleReviewSubmit} className="review-form">
                                     <div className="rating-selector">
-                                        <label>Your Rating:</label>
+                                        <label htmlFor="rating">Your Rating:</label>
                                         <div className="star-rating">
                                             {[...Array(5)].map((_, index) => {
                                                 const ratingValue = index + 1;
@@ -151,21 +152,17 @@ const RestaurantDetails = () => {
                         )}
                     </div>
                 </div>
-                
+
                 <div className="map-section">
                     <h3>Location</h3>
                     <div className="map-container">
-                        <iframe
-                            width="100%"
-                            height="450"
-                            style={{ border: 0, borderRadius: '8px' }}
-                            loading="lazy"
-                            allowFullScreen
-                            src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(
-                                `${restaurant.name}, ${restaurant.address}`
-                            )}`}
-                            title="Restaurant location"
-                        ></iframe>
+                        {restaurant.maps_url ? (
+                            <a href={restaurant.maps_url} target="_blank" rel="noopener noreferrer" className="view-map-link">
+                                📍 View on Google Maps
+                            </a>
+                        ) : (
+                            <p>Location not available.</p>
+                        )}
                     </div>
                 </div>
             </div>

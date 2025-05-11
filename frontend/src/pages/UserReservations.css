@@ -1,0 +1,61 @@
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.card.reservation-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  width: 320px;
+  transition: transform 0.2s ease;
+}
+
+.card.reservation-card:hover {
+  transform: translateY(-5px);
+}
+
+.reservation-details p {
+  margin: 6px 0;
+  font-size: 15px;
+  color: #333;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  background-color: #eee;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.badge.urgent {
+  background-color: #dc3545;
+  color: white;
+}
+
+.card-actions {
+  margin-top: 15px;
+}
+
+.cancel-btn {
+  background: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: bold;
+}
+
+.cancel-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}

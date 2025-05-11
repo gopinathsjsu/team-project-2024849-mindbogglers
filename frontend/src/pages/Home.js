@@ -103,7 +103,7 @@ const Home = () => {
                         name: "Curry House",
                         cuisine: "Indian",
                         rating: 4.6,
-                        image: "https://images.unsplash.com/photo-1585937421612-70a008356c36?auto=format&fit=crop&q=80&w=600&h=350",
+                        image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&q=80&w=600&h=350",
                         city: "Palo Alto",
                         description: "Bold, aromatic Indian dishes made with traditional spices."
                     }
@@ -196,24 +196,21 @@ const Home = () => {
         
         // Navigate to the booking review page with all required details
         navigate('/booking-review', { 
-            state: { 
-                restaurantId,
-                restaurantName: selectedRestaurant ? selectedRestaurant.name : `Restaurant #${restaurantId}`,
-                restaurantAddress: selectedRestaurant ? 
-                    (selectedRestaurant.city ? `${selectedRestaurant.city}, CA` : 'San Francisco, CA') : 
-                    'San Francisco, CA',
-                date: new Date(formData.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric'
-                }),
-                time,
-                people: parseInt(formData.people),
-                tableId,
-                tableType: `Table for ${formData.people}`
-            } 
-        });
+  state: { 
+    restaurantId,
+    restaurantName: selectedRestaurant?.name ?? `Restaurant #${restaurantId}`,
+    restaurantAddress: selectedRestaurant?.city ? `${selectedRestaurant.city}, CA` : 'San Francisco, CA',
+    date: new Date(formData.date).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    }),
+    time,
+    people: parseInt(formData.people),
+    tableId,
+    tableType: `Table for ${formData.people}`,
+    maps_url: selectedRestaurant?.maps_url ?? ''
+  } 
+});
+
     };
 
     // Replace the current time and table buttons code with this:
@@ -269,16 +266,18 @@ const Home = () => {
     const handleBookTable = (restaurant) => {
     // Navigate to the booking review page with restaurant details
     navigate('/booking-review', { 
-        state: { 
-        restaurantId: restaurant.id,
-        restaurantName: restaurant.name,
-        restaurantAddress: restaurant.city,
-        date: formData.date, // From your search form
-        time: restaurant.availableTimes[0].time, // Default to first available time
-        people: parseInt(formData.people),
-        tableType: `Table for ${formData.people}`
-        } 
-    });
+  state: { 
+    restaurantId: restaurant.id,
+    restaurantName: restaurant.name,
+    restaurantAddress: restaurant.city,
+    date: formData.date,
+    time: restaurant.availableTimes[0].time,
+    people: parseInt(formData.people),
+    tableType: `Table for ${formData.people}`,
+    maps_url: restaurant.maps_url
+  } 
+});
+
     };
 
     // Styles
