@@ -4,10 +4,11 @@ from sendgrid.helpers.mail import Mail, HtmlContent
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
-# Load API key from environment variables
+# Load SendGrid API key and default sender email from environment variables
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "your_actual_key_here")
 FROM_EMAIL = os.getenv("BOOKTABLE_EMAIL_FROM", "your_verified_sender@example.com")
 
+# Pydantic model representing booking details to include in emails
 class BookingConfirmationDetails(BaseModel):
     id: str
     restaurant_name: str
@@ -18,15 +19,17 @@ class BookingConfirmationDetails(BaseModel):
     address: Optional[str] = None
     contact: Optional[str] = None
 
+# Send confirmation email using SendGrid
 def send_booking_confirmation(to_email: str, booking_details: BookingConfirmationDetails):
     """
-    Send a formatted HTML booking confirmation email using SendGrid
-    
+    Send a formatted HTML booking confirmation email using SendGrid.
+
     Args:
-        to_email: The recipient's email address
-        booking_details: Details about the booking to include in the email
+        to_email (str): The recipient's email address.
+        booking_details (BookingConfirmationDetails): The booking info to include.
     """
-    # Create HTML content with better formatting
+
+    # Create styled HTML content for confirmation
     html_content = f"""
     <html>
     <head>
@@ -43,7 +46,7 @@ def send_booking_confirmation(to_email: str, booking_details: BookingConfirmatio
         <div class="container">
             <h1>Booking Confirmation</h1>
             <p>Thank you for your reservation at <strong>{booking_details.restaurant_name}</strong>!</p>
-            
+
             <div class="booking-details">
                 <p><strong>Date:</strong> {booking_details.date}</p>
                 <p><strong>Time:</strong> {booking_details.time}</p>
@@ -52,10 +55,10 @@ def send_booking_confirmation(to_email: str, booking_details: BookingConfirmatio
                 {f'<p><strong>Location:</strong> {booking_details.address}</p>' if booking_details.address else ''}
                 {f'<p><strong>Contact:</strong> {booking_details.contact}</p>' if booking_details.contact else ''}
             </div>
-            
+
             <p>You can manage your reservations in your account dashboard.</p>
             <a href="http://localhost:3000/my-reservations" class="button">View My Reservations</a>
-            
+
             <div class="footer">
                 <p>If you need to cancel or modify your reservation, please do so at least 2 hours in advance.</p>
                 <p>Thank you for using BookTable!</p>
@@ -65,16 +68,16 @@ def send_booking_confirmation(to_email: str, booking_details: BookingConfirmatio
     </html>
     """
 
-    # Create plain text version as a fallback
+    # Plain text fallback content for email clients that don't support HTML
     plain_text_content = f"""
 Hi,
 
 Your reservation at {booking_details.restaurant_name} is confirmed.
 
-📅 Date: {booking_details.date}
-⏰ Time: {booking_details.time}
-👥 People: {booking_details.people}
-🪑 Table: {booking_details.table_type}
+Date: {booking_details.date}
+Time: {booking_details.time}
+People: {booking_details.people}
+Table: {booking_details.table_type}
 
 You can manage your reservations by visiting: http://localhost:3000/my-reservations
 
@@ -84,7 +87,7 @@ Thanks for using BookTable!
 - Team BookTable
     """
 
-    # Create the email message
+    # Create and send the email via SendGrid
     message = Mail(
         from_email=FROM_EMAIL,
         to_emails=to_email,
@@ -96,21 +99,23 @@ Thanks for using BookTable!
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
-        print(f"✅ Email sent successfully. Status code: {response.status_code}")
+        print(f"Email sent successfully. Status code: {response.status_code}")
         return {"success": True, "message": "Email sent successfully"}
     except Exception as e:
-        print(f"❌ Failed to send email: {e}")
+        print(f"Failed to send email: {e}")
         return {"success": False, "error": str(e)}
 
+# Send cancellation email using SendGrid
 def send_booking_cancellation(to_email: str, booking_details: BookingConfirmationDetails):
     """
-    Send a booking cancellation email using SendGrid
-    
+    Send a formatted HTML booking cancellation email using SendGrid.
+
     Args:
-        to_email: The recipient's email address
-        booking_details: Details about the cancelled booking
+        to_email (str): The recipient's email address.
+        booking_details (BookingConfirmationDetails): The cancelled booking info.
     """
-    # Create HTML content
+
+    # Create styled HTML content for cancellation notice
     html_content = f"""
     <html>
     <head>
@@ -127,16 +132,16 @@ def send_booking_cancellation(to_email: str, booking_details: BookingConfirmatio
         <div class="container">
             <h1>Booking Cancellation</h1>
             <p>Your reservation at <strong>{booking_details.restaurant_name}</strong> has been cancelled.</p>
-            
+
             <div class="booking-details">
                 <p><strong>Date:</strong> {booking_details.date}</p>
                 <p><strong>Time:</strong> {booking_details.time}</p>
                 <p><strong>Party Size:</strong> {booking_details.people} {'person' if booking_details.people == 1 else 'people'}</p>
             </div>
-            
+
             <p>You can make a new reservation any time from our website.</p>
             <a href="http://localhost:3000" class="button">Book a New Reservation</a>
-            
+
             <div class="footer">
                 <p>Thank you for using BookTable!</p>
             </div>
@@ -145,7 +150,7 @@ def send_booking_cancellation(to_email: str, booking_details: BookingConfirmatio
     </html>
     """
 
-    # Create message
+    # Create and send the cancellation email
     message = Mail(
         from_email=FROM_EMAIL,
         to_emails=to_email,
@@ -156,8 +161,8 @@ def send_booking_cancellation(to_email: str, booking_details: BookingConfirmatio
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
-        print(f"✅ Cancellation email sent successfully. Status code: {response.status_code}")
+        print(f"Cancellation email sent successfully. Status code: {response.status_code}")
         return {"success": True, "message": "Cancellation email sent successfully"}
     except Exception as e:
-        print(f"❌ Failed to send cancellation email: {e}")
+        print(f"Failed to send cancellation email: {e}")
         return {"success": False, "error": str(e)}
