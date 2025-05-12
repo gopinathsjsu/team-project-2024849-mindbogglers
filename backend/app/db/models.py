@@ -13,6 +13,8 @@ class User(Base):
     role = Column(Enum("Customer", "RestaurantManager", "Admin", name="user_roles"))
 
     reviews = relationship("Review", back_populates="user")
+    restaurants = relationship("Restaurant", back_populates="manager") 
+
 
 
 # Restaurant Model
@@ -22,12 +24,26 @@ class Restaurant(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     cuisine = Column(String, nullable=False)
-    cost_rating = Column(Integer)  # 1 to 5 stars
+    cost_rating = Column(Integer)
     city = Column(String, nullable=False)
     state = Column(String, nullable=False)
     zip_code = Column(String, nullable=False)
     rating = Column(Float, default=0.0)
     total_bookings = Column(Integer, default=0)
+    description = Column(Text, nullable=True)
+    contact_email = Column(String, nullable=True)
+    contact_phone = Column(String, nullable=True)
+    hours_open = Column(String, nullable=True)
+    hours_close = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    photos = relationship("RestaurantPhoto", back_populates="restaurant")
+
+
+
+
+
+    manager_id = Column(Integer, ForeignKey("users.id"))
+    manager = relationship("User", back_populates="restaurants")
 
     tables = relationship("Table", back_populates="restaurant")
     reviews = relationship("Review", back_populates="restaurant")
@@ -74,3 +90,24 @@ class Review(Base):
 
     user = relationship("User", back_populates="reviews")
     restaurant = relationship("Restaurant", back_populates="reviews")
+
+# Restaurant Approval Model
+class RestaurantApproval(Base):
+    __tablename__ = "restaurant_approvals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id"), nullable=False)
+    status = Column(String, default="pending")  # pending, approved, rejected
+
+    restaurant = relationship("Restaurant")
+
+# RestaurantPhoto Model
+class RestaurantPhoto(Base):
+    __tablename__ = "restaurant_photos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id"), nullable=False)
+    photo_url = Column(String, nullable=False)
+    description = Column(String)
+
+    restaurant = relationship("Restaurant", back_populates="photos")

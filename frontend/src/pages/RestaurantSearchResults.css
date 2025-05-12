@@ -17,7 +17,10 @@
   height: 150px;
   object-fit: cover;
   border-radius: 8px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
 }
+
 
 .restaurant-details {
   flex: 1;
@@ -83,5 +86,43 @@
 }
 
 .book-table-btn:hover {
+  background-color: #6B0000;
+}
+
+/* Cost Rating */
+.cost-rating {
+  color: green;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Number of Bookings */
+.bookings-count {
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Button Container */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* View Reviews Button */
+.view-reviews-btn {
+  background-color: #8B0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.view-reviews-btn:hover {
   background-color: #6B0000;
 }

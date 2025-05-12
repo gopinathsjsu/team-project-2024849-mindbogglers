@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { getRestaurantAvailability } from '../api';
 import './RestaurantSearchResults.css';
+const BASE_API = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+
 
 const Home = () => {
     const { user } = useAuth();
@@ -13,16 +15,18 @@ const Home = () => {
     const [showSearchForm, setShowSearchForm] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [showResults, setShowResults] = useState(false);
-    
+    const [bookingInProgress, setBookingInProgress] = useState(false);
+
     // Form data for reservation search
-    const [formData, setFormData] = useState({
-        date: today,
-        time: '19:00',
-        people: '2',
-        city: '',
-        state: '',
-        zip_code: ''
-    });
+   const [formData, setFormData] = useState({
+    date: today,
+    time: '19:00',
+    people: 2,          // ✅ number
+    city: '',
+    state: '',
+    zip_code: ''
+});
+
 
     // Common reservation times
     const times = [
@@ -118,167 +122,198 @@ const Home = () => {
         loadFeaturedRestaurants();
     }, [user]);
 
-    // Handle reservation button click
-    const handleReserveTable = () => {
-        if (user) {
-            // If user is logged in, show search form
-            setShowSearchForm(true);
-            setShowResults(false);
-        } else {
-            // If user is not logged in, redirect to login page
-            navigate('/login');
-        }
-    };
-    
-    // Handle form field changes
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-    };
+ // Handle reservation button click
+const handleReserveTable = () => {
+    if (user) {
+        // If user is logged in, show search form
+        setShowSearchForm(true);
+        setShowResults(false);
+    } else {
+        // If user is not logged in, redirect to login page
+        navigate('/login');
+    }
+};
 
-    // Handle search form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+// Handle form field changes
+const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+        ...formData,
+        [name]: name === 'people' ? parseInt(value, 10) : value
+    });
+};
 
-        try {
-            console.log('Searching with params:', formData);
-            // In a real app, this would be an API call
-            // For demo purposes, we'll simulate the API response with mock data
-            // const results = await getRestaurantAvailability(formData);
-            
-            // Simulate API response with filtered restaurants based on city/state if provided
-            let filteredResults = [...featuredRestaurants];
-            
-            if (formData.city) {
-                filteredResults = filteredResults.filter(restaurant => 
-                    restaurant.city.toLowerCase().includes(formData.city.toLowerCase())
-                );
+// Handle search form submission
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+        console.log('Searching with params:', formData);
+        const results = await getRestaurantAvailability(formData);
+
+        // Group results by restaurant_id
+        const grouped = {};
+        for (const r of results) {
+            if (!grouped[r.restaurant_id]) {
+                grouped[r.restaurant_id] = {
+                    id: r.restaurant_id,
+                    name: r.restaurant_name,
+                    city: r.city,
+                    cuisine: r.cuisine,
+                    cost_rating: r.cost_rating,
+                    rating: r.rating,
+                    total_bookings: r.total_bookings || 0,
+                    maps_url: r.maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.restaurant_name)}+${encodeURIComponent(r.city)}`,
+                    image: r.image || `https://source.unsplash.com/featured/?restaurant,${r.cuisine}`,
+                    description: r.description || `Enjoy a wonderful ${r.cuisine} dining experience in ${r.city}.`,
+                    availableTimes: []  // Initialize here
+                };
             }
-            
-            // Add availability info to each restaurant
-            const resultsWithAvailability = filteredResults.map(restaurant => ({
-                ...restaurant,
-                availableTimes: [
-                    {
-                        time: formData.time,
-                        tables: [
-                            { id: `${restaurant.id}-1`, seats: 2 },
-                            { id: `${restaurant.id}-2`, seats: 4 }
-                        ]
-                    },
-                    {
-                        time: `${parseInt(formData.time.split(':')[0]) + 1}:${formData.time.split(':')[1]}`,
-                        tables: [
-                            { id: `${restaurant.id}-3`, seats: 2 },
-                            { id: `${restaurant.id}-4`, seats: 4 }
-                        ]
-                    }
-                ]
-            }));
-            
-            setSearchResults(resultsWithAvailability);
-            setShowResults(true);
-        } catch (err) {
-            console.error('Search error:', err);
-        } finally {
-            setLoading(false);
+
+            // Only push once
+            grouped[r.restaurant_id].availableTimes.push({
+                time: r.available_time,
+                table_id: r.table_id
+            });
         }
-    };
 
-    // Handle selecting a restaurant and time
-    const handleSelectTime = (restaurantId, time, tableId) => {
-        // Find the selected restaurant to pass its details
-        const selectedRestaurant = searchResults.find(r => r.id.toString() === restaurantId.toString());
-        
-        // Navigate to the booking review page with all required details
-        navigate('/booking-review', { 
-  state: { 
-    restaurantId,
-    restaurantName: selectedRestaurant?.name ?? `Restaurant #${restaurantId}`,
-    restaurantAddress: selectedRestaurant?.city ? `${selectedRestaurant.city}, CA` : 'San Francisco, CA',
-    date: new Date(formData.date).toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-    }),
-    time,
-    people: parseInt(formData.people),
-    tableId,
-    tableType: `Table for ${formData.people}`,
-    maps_url: selectedRestaurant?.maps_url ?? ''
-  } 
-});
+        const mappedResults = Object.values(grouped);
+        setSearchResults(mappedResults);
+        setShowResults(true);
 
-    };
+    } catch (err) {
+        console.error('Search error:', err);
+    } finally {
+        setLoading(false);
+    }
+};
 
-    // Replace the current time and table buttons code with this:
-    const renderRestaurantCard = (restaurant) => {
-        return (
+// Render restaurant card
+const renderRestaurantCard = (restaurant) => {
+    const imageUrl = restaurant.image?.startsWith('/')
+        ? `${BASE_API}${restaurant.image}`
+        : restaurant.image;
+
+    return (
         <div className="restaurant-card" key={restaurant.id}>
             <div className="restaurant-info">
-            <img 
-                src={restaurant.image} 
-                alt={restaurant.name}
-                className="restaurant-image"
-            />
-            <div className="restaurant-details">
-                <h3>{restaurant.name}</h3>
-                <div className="rating">
-                {/* Star rating display */}
-                {'★'.repeat(Math.floor(restaurant.rating))}
-                {restaurant.rating % 1 >= 0.5 ? '½' : ''}
-                {'☆'.repeat(5 - Math.ceil(restaurant.rating))}
-                <span className="rating-number">{restaurant.rating}</span>
+                <img
+                    src={imageUrl || 'https://source.unsplash.com/600x400/?restaurant'}
+                    alt={restaurant.name}
+                    className="restaurant-image"
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://source.unsplash.com/600x400/?restaurant';
+                    }}
+                />
+
+                <div className="restaurant-details">
+                    <h3>{restaurant.name}</h3>
+                    <div className="rating">
+                        {'★'.repeat(Math.floor(restaurant.rating))}{restaurant.rating % 1 >= 0.5 ? '½' : ''}
+                        {'☆'.repeat(5 - Math.ceil(restaurant.rating))}
+                        <span className="rating-number">{restaurant.rating}</span>
+                    </div>
+                    <p className="cost-rating">{'$'.repeat(restaurant.cost_rating)}</p>
+                    <p className="bookings-count">{restaurant.total_bookings || 0} bookings today</p>
+
+                    <p className="location"><span>📍</span> {restaurant.city}</p>
+                    <a href={restaurant.maps_url} target="_blank" rel="noopener noreferrer">
+                        View on Google Maps
+                    </a>
+                    <p className="description">{restaurant.description}</p>
+
+                    <div className="available-times">
+                        <h4>Available Times:</h4>
+                        <div className="time-list">
+                            {restaurant.availableTimes?.map((timeSlot) => (
+                                <button
+                                    key={timeSlot.time}
+                                    className="time-badge"
+                                    onClick={() => handleBookTable({ ...restaurant, selectedTime: timeSlot.time })}
+                                >
+                                    {parseInt(timeSlot.time) > 12
+                                        ? `${parseInt(timeSlot.time) - 12}:${timeSlot.time.split(':')[1]} PM`
+                                        : `${timeSlot.time} ${parseInt(timeSlot.time) === 12 ? 'PM' : 'AM'}`}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="action-buttons" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                        <button
+  className="book-table-btn"
+  onClick={() => alert("Please select a time slot above to book.")}
+>
+  Book Table
+</button>
+
+
+                        <button
+                            className="book-table-btn"
+                            onClick={() => {
+                                console.log('Navigating to:', `/reviews/${restaurant.id}`);
+                                navigate(`/reviews/${restaurant.id}`);
+                            }}
+                        >
+                            View Reviews
+                        </button>
+                    </div>
                 </div>
-                <p className="location"><span>📍</span> {restaurant.city}</p>
-                <p className="description">{restaurant.description}</p>
-                
-                {/* Available times - just display them, don't make them selectable */}
-                <div className="available-times">
-                <h4>Available Times:</h4>
-                <div className="time-list">
-                    {restaurant.availableTimes && restaurant.availableTimes.map(timeSlot => (
-                    <span key={timeSlot.time} className="time-badge">
-                        {parseInt(timeSlot.time) > 12
-                        ? `${parseInt(timeSlot.time) - 12}:${timeSlot.time.split(':')[1]} PM`
-                        : `${timeSlot.time} ${parseInt(timeSlot.time) === 12 ? 'PM' : 'AM'}`}
-                    </span>
-                    ))}
-                </div>
-                </div>
-                
-                {/* Single button for booking */}
-                <button 
-                className="book-table-btn"
-                onClick={() => handleBookTable(restaurant)}
-                >
-                Book Table
-                </button>
-            </div>
             </div>
         </div>
-        );
-    };
+    );
+};
 
-    // Add this function to handle the button click
-    const handleBookTable = (restaurant) => {
-    // Navigate to the booking review page with restaurant details
-    navigate('/booking-review', { 
-  state: { 
+const handleBookTable = (restaurant) => {
+  if (bookingInProgress) return;  // ✅ Prevent double navigation
+  setBookingInProgress(true);
+
+  console.log("handleBookTable called with:", restaurant);
+
+  // Ensure selectedTime is provided
+  if (!restaurant.selectedTime) {
+    console.error("No selectedTime found on restaurant object:", restaurant);
+    alert("Please select a time slot before booking.");
+    setBookingInProgress(false);
+    return;
+  }
+
+  // Find the table ID for the selected time
+  const selectedTimeSlot = restaurant.availableTimes.find(
+    (t) => t.time === restaurant.selectedTime
+  );
+
+  const tableId = selectedTimeSlot?.table_id;
+  if (!tableId) {
+    console.error("No table ID found for selected time:", restaurant.selectedTime);
+    alert("Sorry, table information is missing for the selected time.");
+    setBookingInProgress(false);
+    return;
+  }
+
+  const bookingData = {
     restaurantId: restaurant.id,
     restaurantName: restaurant.name,
     restaurantAddress: restaurant.city,
     date: formData.date,
-    time: restaurant.availableTimes[0].time,
+    time: restaurant.selectedTime,
     people: parseInt(formData.people),
     tableType: `Table for ${formData.people}`,
+    tableId: tableId,
     maps_url: restaurant.maps_url
-  } 
-});
+  };
 
-    };
+  console.log("Navigating to /booking-review with data:", bookingData);
+  navigate('/booking-review', { state: bookingData });
+
+  // Optional: reset after short delay
+  setTimeout(() => setBookingInProgress(false), 1000);
+};
+
+
+    
 
     // Styles
     const pageStyle = {

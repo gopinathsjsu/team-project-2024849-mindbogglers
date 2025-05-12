@@ -14,7 +14,7 @@ def seed_restaurants_tables_reviews():
         print("Restaurants already seeded.")
         return
 
-    # Create sample users
+    # ✅ Create Customers and Admins
     customer1 = models.User(
         email="alice@gmail.com",
         hashed_password=hash_password("alice123"),
@@ -26,18 +26,6 @@ def seed_restaurants_tables_reviews():
         hashed_password=hash_password("bob123"),
         full_name="Bob",
         role="Customer"
-    )
-    manager1 = models.User(
-        email="syedanida.khader@sjsu.edu",
-        hashed_password=hash_password("manager123"),
-        full_name="Syeda Nida",
-        role="RestaurantManager"
-    )
-    manager2 = models.User(
-        email="rutujabpatil24@gmail.com",
-        hashed_password=hash_password("manager123"),
-        full_name="Rutuja Patil",
-        role="RestaurantManager"
     )
     admin1 = models.User(
         email="aishly@example.com",
@@ -52,11 +40,54 @@ def seed_restaurants_tables_reviews():
         role="Admin"
     )
 
-    db.add_all([customer1, customer2, manager1, manager2, admin1, admin2])
+    # ✅ Create 5 Restaurant Managers (1 per city)
+    manager_sf = models.User(
+        email="manager_sf@example.com",
+        hashed_password=hash_password("manager123"),
+        full_name="Manager SF",
+        role="RestaurantManager"
+    )
+    manager_oak = models.User(
+        email="manager_oak@example.com",
+        hashed_password=hash_password("manager123"),
+        full_name="Manager Oakland",
+        role="RestaurantManager"
+    )
+    manager_sj = models.User(
+        email="manager_sj@example.com",
+        hashed_password=hash_password("manager123"),
+        full_name="Manager San Jose",
+        role="RestaurantManager"
+    )
+    manager_berk = models.User(
+        email="manager_berk@example.com",
+        hashed_password=hash_password("manager123"),
+        full_name="Manager Berkeley",
+        role="RestaurantManager"
+    )
+    manager_pa = models.User(
+        email="manager_pa@example.com",
+        hashed_password=hash_password("manager123"),
+        full_name="Manager Palo Alto",
+        role="RestaurantManager"
+    )
+
+    # ✅ Add all users
+    db.add_all([customer1, customer2, admin1, admin2,
+                manager_sf, manager_oak, manager_sj, manager_berk, manager_pa])
     db.flush()
 
     alice_id = customer1.id
     bob_id = customer2.id
+
+    # ✅ Map cities to managers
+    city_manager_map = {
+        "San Francisco": manager_sf.id,
+        "Oakland": manager_oak.id,
+        "San Jose": manager_sj.id,
+        "Berkeley": manager_berk.id,
+        "Palo Alto": manager_pa.id
+    }
 
     sample_restaurants = [
         # --- San Francisco Restaurants ---
@@ -97,8 +128,15 @@ def seed_restaurants_tables_reviews():
 
     for entry in sample_restaurants:
         restaurant = entry["restaurant"]
+        restaurant.manager_id = city_manager_map[restaurant.city]
+
         db.add(restaurant)
         db.flush()
+
+        db.add(models.RestaurantApproval(
+            restaurant_id=restaurant.id,
+            status="pending"
+        ))
 
         for t in entry["tables"]:
             db.add(models.Table(
@@ -116,7 +154,7 @@ def seed_restaurants_tables_reviews():
             ))
 
     db.commit()
-    print("✅ Restaurants, tables, and reviews seeded.")
+    print("✅ Restaurants, tables, reviews, and approvals seeded with city-specific managers.")
     db.close()
 
 if __name__ == "__main__":

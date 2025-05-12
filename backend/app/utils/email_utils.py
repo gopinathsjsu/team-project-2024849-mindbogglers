@@ -3,10 +3,12 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, HtmlContent
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+load_dotenv()
 
 # Load SendGrid API key and default sender email from environment variables
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "your_actual_key_here")
-FROM_EMAIL = os.getenv("BOOKTABLE_EMAIL_FROM", "your_verified_sender@example.com")
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+FROM_EMAIL = os.getenv("BOOKTABLE_EMAIL_FROM")
 
 # Pydantic model representing booking details to include in emails
 class BookingConfirmationDetails(BaseModel):
@@ -97,6 +99,10 @@ Thanks for using BookTable!
     )
 
     try:
+        print("📤 Sending Email Debug Info:")
+        print("SENDGRID_API_KEY (first 10 chars):", SENDGRID_API_KEY[:10])
+        print("FROM_EMAIL:", FROM_EMAIL)
+        print("TO_EMAIL:", to_email)
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
         print(f"Email sent successfully. Status code: {response.status_code}")

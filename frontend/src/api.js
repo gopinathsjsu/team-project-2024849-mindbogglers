@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// Update the baseURL to point to your FastAPI backend
 const instance = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: process.env.REACT_APP_API_BASE, // ✅ Uses env variable now
     headers: {
         'Content-Type': 'application/json',
     },
 });
+
 
 // Add a request interceptor to include the auth token in requests
 instance.interceptors.request.use(
@@ -103,63 +103,44 @@ export const searchRestaurants = async (params) => {
 
 export const getRestaurantAvailability = async (params) => {
     try {
-        const response = await instance.get('/restaurants/availability', { params });
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};
-
-export const getRestaurantReviews = async (restaurantId) => {
-    try {
-        const response = await instance.get(`/restaurants/${restaurantId}/reviews`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};
-
-// Updated bookTable function
-export const bookTable = async (bookingData) => {
-    try {
-        console.log('API bookTable called with:', bookingData);
-        
-        // First ensure we have the proper authentication
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('Authentication token is missing. Please log in.');
-        }
-        
-        // Ensure instance has the latest token
-        instance.defaults.headers['Authorization'] = `Bearer ${token}`;
-        
-        // Check if restaurantId is provided
-        if (!bookingData.restaurantId) {
-            throw new Error('Restaurant ID is required for booking');
-        }
-        
-        // Make the API call
-        const response = await instance.post(
-            `/restaurants/${bookingData.restaurantId}/book`, 
-            bookingData
+        // Remove empty strings from params
+        const cleanParams = Object.fromEntries(
+            Object.entries(params).filter(([_, v]) => v !== '')
         );
-        
-        console.log('Booking API response:', response.data);
+
+        const response = await instance.get('/restaurants/availability', {
+            params: cleanParams
+        });
         return response.data;
     } catch (error) {
-        console.error('BookTable API error:', error);
         throw error;
     }
 };
+
+
+
+export const getRestaurantReviews = async (id) => {
+  const res = await fetch(`http://localhost:8000/restaurants/${id}/reviews`);
+  if (!res.ok) {
+    console.error("Failed to fetch reviews:", res.status);
+    throw new Error('Failed to fetch reviews');
+  }
+  const data = await res.json();
+  console.log("Fetched reviews:", data);
+  return data;
+};
+
 
 export const cancelReservation = async (reservationId) => {
     try {
-        const response = await instance.delete(`/restaurants/cancel/${reservationId}`);
+        const response = await instance.delete(`/restaurants/reservations/${reservationId}/cancel`);
         return response.data;
     } catch (error) {
+        console.error('Error cancelling reservation:', error.response?.data || error.message);
         throw error;
     }
 };
+
 
 export const getMyReservations = async () => {
     try {
@@ -262,15 +243,15 @@ export const getRestaurantDetails = async (id) => {
     }
 };
 
-// Restaurant Manager API functions
 export const addRestaurant = async (restaurantData) => {
     try {
-        const response = await instance.post('/restaurants/add', restaurantData);
+        const response = await instance.post('/manager/restaurants', restaurantData);
         return response.data;
     } catch (error) {
         throw error;
     }
 };
+
 
 export const updateRestaurant = async (restaurantId, restaurantData) => {
     try {
@@ -299,14 +280,23 @@ export const updateTable = async (tableId, tableData) => {
     }
 };
 
-export const uploadPhoto = async (restaurantId, photoData) => {
+export const uploadPhoto = async (restaurantId, formData) => {
     try {
-        const response = await instance.post(`/manager/restaurants/${restaurantId}/photos`, photoData);
+        const response = await instance.post(
+            `/manager/restaurants/${restaurantId}/photos`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
         return response.data;
     } catch (error) {
         throw error;
     }
 };
+
 
 // Admin API functions
 export const getPendingApprovals = async () => {
@@ -347,40 +337,29 @@ export const getAnalytics = async (timeframe = 'month') => {
     }
 };
 
-// In api.js
-export const createReservation = async (bookingData) => {
+export const fetchReservationAnalytics = getAnalytics;
+
+
+export const getMyRestaurants = async () => {
     try {
-        // If you have a backend API
-        const response = await fetch('/api/reservations', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(bookingData)
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to create reservation');
-        }
-        
-        return await response.json();
+        const response = await instance.get('/manager/my-restaurants');
+        return response.data;
     } catch (error) {
-        console.error('API error creating reservation:', error);
-        
-        // Fallback to local storage if API fails or doesn't exist
-        const reservations = JSON.parse(localStorage.getItem('userReservations') || '[]');
-        const newReservation = {
-            id: `local-${Date.now()}`,
-            ...bookingData,
-            createdAt: new Date().toISOString()
-        };
-        reservations.push(newReservation);
-        localStorage.setItem('userReservations', JSON.stringify(reservations));
-        
-        return newReservation;
+        throw error;
     }
 };
+
+
+// In api.js
+export const createReservation = async (restaurantId, bookingData) => {
+    try {
+        const response = await instance.post(`/restaurants/${restaurantId}/book`, bookingData);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 // Auth aliases
 export const loginUser = login;
