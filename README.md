@@ -1,10 +1,6 @@
 # 🍽️ BookTable - Restaurant Reservation System
 
-<div align="center">
-  <img src="(https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/Homepage_1.png)" alt="BookTable Banner" width="100%">
-</div>
-Image source: expedia.com
-
+![Home Page](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/Homepage_1.png)
 ## Project Overview
 
 BookTable is a comprehensive restaurant reservation platform inspired by OpenTable, allowing users to discover, review, and book tables at their favorite restaurants. Our application provides a seamless experience for customers while offering powerful management tools for restaurant owners and administrators.
