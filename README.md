@@ -46,7 +46,7 @@ BookTable is a comprehensive restaurant reservation platform inspired by OpenTab
 
 ## 🏗️ Architecture
 
-![System Architecture](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/docs/architecture.png)
+
 
 Our application follows a microservices architecture pattern:
 
@@ -82,7 +82,7 @@ Our application follows a microservices architecture pattern:
     python -m venv venv
     source venv/bin/activate  # On Windows: venv\Scripts\activate
     pip install -r requirements.txt
-    python app.py
+    uvicorn app.main:app --reload    #To run backend server
 
 4. **Database Setup**
     ```bash
@@ -100,7 +100,6 @@ Our application is deployed on AWS with the following components:
 - S3 for static content storage
 - CloudFront for content delivery
 
-Deployment instructions are available in the [deployment guide](docs/deployment.md).
 
 ## 📊 Project Management
 
@@ -123,11 +122,51 @@ Key API endpoints:
 
 Our team is composed of passionate developers committed to creating an exceptional restaurant reservation experience:
 
-- **Frontend Development**: [@team-member-1](https://github.com/team-member-1)
-- **Backend Development**: [@team-member-2](https://github.com/team-member-2)
-- **Database Design**: [@team-member-3](https://github.com/team-member-3)
-- **DevOps & Deployment**: [@team-member-4](https://github.com/team-member-4)
+1. Syeda Nida Khader
+2. Rutuja Patil
+3. Aishly Manglani
+4. Harshavardhan Reddy Gadila
 
+## Areas of Contribution for each team member:
+### Syeda Nida Khader:
+
+User Interface: Designed the interfaces for customer, manager and admin.
+
+Maps Integration: Integrated the Google Maps API to enable location-based restaurant discovery
+
+Backend Architecture: Spearheaded the development of the FastAPI (Python) backend services
+
+Error Handling: Created robust validation and error handling for all API inputs
+
+### Aishly Manglani:
+
+Frontend Development: Led the development of the React.js frontend with Material UI components
+
+Database Design: Designed and implemented the MySQL database schema
+
+Error Handling: Created robust validation and error handling for all API inputs
+
+### Rutuja Patil:
+
+Backend Architecture: Spearheaded the development of the FastAPI (Python) backend services
+
+API Development: Created RESTful API endpoints for restaurant management, bookings, and user authentication
+
+Authentication System: Implemented the JWT-based authentication system
+
+### Harshavardhan:
+
+DevOps & Deployment: Configured the AWS infrastructure (EC2, Load Balancer, RDS)
+
+Project journal, UI wireframes, Diagrams: Prepared the scrum documentations.
+
+## 🔗 Resources
+
+- Project Board_(https://docs.google.com/spreadsheets/d/1ONBP3ygoERc7HbGaNyZAmJ2vxt5ty9sNkG0XhjNRnag/edit?gid=0#gid=0)
+  
+- [Project Journal](docs/journal.md)
+
+  
 ## 📸 Screenshots
 
 ### Customer Interface
@@ -146,11 +185,5 @@ Our team is composed of passionate developers committed to creating an exception
 *Administrators can view platform usage analytics*
 
 
-## 🔗 Additional Resources
 
-- [UI Wireframes](docs/wireframes.md)
-- [API Documentation](docs/api.md)
-- [Database Schema](docs/schema.md)
-- [Deployment Guide](docs/deployment.md)
-- [Project Journal](docs/journal.md)
 
