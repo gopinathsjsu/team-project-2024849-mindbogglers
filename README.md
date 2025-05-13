@@ -124,45 +124,28 @@ Our team is composed of passionate developers committed to creating an exception
 4. Harshavardhan Reddy Gadila
 
 ## Areas of Contribution for each team member:
-### Syeda Nida Khader:
+### Syeda Nida Khader
 
-User Interface: Designed the interfaces for customer, manager and admin.
+Syedanida led multiple critical components of the frontend and backend integration. She developed the Login and Booking interfaces, built the user dashboard to view and cancel reservations, and implemented email/SMS confirmation logic. She also contributed to the restaurant search page and played a major role in frontend deployment and initial system planning.
 
-Maps Integration: Integrated the Google Maps API to enable location-based restaurant discovery
+###  Rutuja Patil
 
-Backend Architecture: Spearheaded the development of the FastAPI (Python) backend services
+Rutuja focused heavily on backend architecture, implementing core FastAPI services for reservations, authentication, and restaurant availability. She also integrated Google Maps for address resolution and protected APIs using JWT-based role access control. She contributed significantly to the Manager and Admin modules and supported database and deployment setup.
 
-Error Handling: Created robust validation and error handling for all API inputs
+###  Aishly Manglani
 
-### Aishly Manglani:
+Aishly was responsible for developing the Admin module, designing the database schema, and building secure login/signup APIs. She integrated role-based access control and collaborated on the booking search and confirmation systems. Aishly also led testing and validation efforts, and worked on backend deployment and documentation finalization.
 
-Frontend Development: Led the development of the React.js frontend with Material UI components
+###  Harshavardhan
 
-Database Design: Designed and implemented the MySQL database schema
-
-Error Handling: Created robust validation and error handling for all API inputs
-
-### Rutuja Patil:
-
-Backend Architecture: Spearheaded the development of the FastAPI (Python) backend services
-
-API Development: Created RESTful API endpoints for restaurant management, bookings, and user authentication
-
-Authentication System: Implemented the JWT-based authentication system
-
-Integrated email service (e.g., SMTP) to send booking confirmations.
-
-### Harshavardhan:
-
-DevOps & Deployment: Configured the AWS infrastructure (EC2, Load Balancer, RDS)
-
-Project journal, UI wireframes, Diagrams: Prepared the scrum documentations.
+Harsha built key UI modules including the Manager Dashboard and Signup page. He finalized the frontend landing page, styled key components, and handled EC2 backend deployment and AWS configuration. He also prepared the UI wireframes, architecture diagrams, and project journal.
 
 ## 🔗 Resources
 
-- Project Board_(https://docs.google.com/spreadsheets/d/1ONBP3ygoERc7HbGaNyZAmJ2vxt5ty9sNkG0XhjNRnag/edit?gid=0#gid=0)
+- [Project Board](documents/Sprint_Sheet.xlsx)
   
-- [Project Journal](docs/journal.md)
+- [Project Journal](documents/Project_Journal.pdf)
+- [XPvalues.pdf](documents/XPvalues.pdf)
 
   
 ## 📸 Screenshots
