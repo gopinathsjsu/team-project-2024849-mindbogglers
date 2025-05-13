@@ -15,25 +15,26 @@ const UserReservations = () => {
         const fetchReservations = async () => {
             try {
                 const apiReservations = await getMyReservations();
+                console.log("API Reservations:", apiReservations);
                 let localReservations = [];
 
-                try {
-                    const storedReservations = localStorage.getItem('userReservations');
-                    if (storedReservations) {
-                        localReservations = JSON.parse(storedReservations).map(res => ({
-                            reservation_id: res.id || res.reservationId || `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                            restaurant: res.restaurantName || `Restaurant #${res.restaurantId}`,
-                            date: res.date,
-                            time: res.time,
-                            number_of_people: res.people || res.partySize || 2,
-                            isLocalReservation: true
-                        }));
-                    }
-                } catch (localError) {
-                    console.error('Error reading local reservations:', localError);
-                }
+                // try {
+                //     const storedReservations = localStorage.getItem('userReservations');
+                //     if (storedReservations) {
+                //         localReservations = JSON.parse(storedReservations).map(res => ({
+                //             reservation_id: res.id || res.reservationId || `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                //             restaurant: res.restaurantName || `Restaurant #${res.restaurantId}`,
+                //             date: res.date,
+                //             time: res.time,
+                //             number_of_people: res.people || res.partySize || 2,
+                //             isLocalReservation: true
+                //         }));
+                //     }
+                // } catch (localError) {
+                //     console.error('Error reading local reservations:', localError);
+                // }
 
-                const allReservations = [...apiReservations, ...localReservations];
+                const allReservations = [...apiReservations];
                 const uniqueReservations = Array.from(new Map(allReservations.map(item => [item.reservation_id, item])).values());
 
                 uniqueReservations.sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
@@ -132,15 +133,15 @@ const UserReservations = () => {
                                 </div>
                             </div>
                             <div className="reservation-details">
-                                <p><strong>Date:</strong> {formatDate(reservation.date)}</p>
+                                <p><strong>Date:</strong> {reservation.date}</p>
                                 <p><strong>Time:</strong> {reservation.time}</p>
                                 <p><strong>Party Size:</strong> {reservation.number_of_people}</p>
                             </div>
                             <div className="card-actions">
-                                <button 
+                                <button
                                     className="btn cancel-btn"
                                     onClick={() => handleCancelReservation(
-                                        reservation.reservation_id, 
+                                        reservation.reservation_id,
                                         reservation.isLocalReservation
                                     )}
                                 >

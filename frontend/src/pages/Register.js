@@ -10,7 +10,7 @@ const Register = () => {
         full_name: '',
         email: '',
         password: '',
-        role: 'Customer'
+        role: 'customer'
     });
     const [errorMessage, setErrorMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -81,10 +81,11 @@ const Register = () => {
                 <PasswordRequirements password={userData.password} />
 
                 <label>Role:</label>
-                <select name="role" value={userData.role} onChange={handleChange}>
+                <select name="role" value={userData.role} onChange={handleChange} >
+                    <option value="">Select a role</option>
                     <option value="Customer">Customer</option>
                     <option value="RestaurantManager">Restaurant Manager</option>
-                    <option value="Admin">Admin</option>
+                    {/* <option value="Admin">Admin</option> */}
                 </select>
 
                 <button type="submit" className="register-btn">Register</button>

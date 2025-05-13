@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -5,11 +6,13 @@ import { getRestaurantAvailability } from '../api';
 import './RestaurantSearchResults.css';
 const BASE_API = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
-
 const Home = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const today = new Date().toISOString().split('T')[0];
+     const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
     const [loading, setLoading] = useState(false);
     const [featuredRestaurants, setFeaturedRestaurants] = useState([]);
     const [showSearchForm, setShowSearchForm] = useState(false);
@@ -17,28 +20,44 @@ const Home = () => {
     const [showResults, setShowResults] = useState(false);
     const [bookingInProgress, setBookingInProgress] = useState(false);
 
-    // Form data for reservation search
-   const [formData, setFormData] = useState({
-    date: today,
-    time: '19:00',
-    people: 2,          // ✅ number
-    city: '',
-    state: '',
-    zip_code: ''
-});
+    const [formData, setFormData] = useState({
+        date: todayStr,
+        time: '',
+        people: 2,
+        city: '',
+        state: '',
+        zip_code: ''
+    });
 
+    const generateTimeSlots = () => {
+        const slots = [];
+        for (let h = 10; h <= 21; h++) {
+            slots.push(`${String(h).padStart(2, '0')}:00`);
+            slots.push(`${String(h).padStart(2, '0')}:30`);
+        }
+        slots.push('22:00');
+        return slots;
+    };
 
-    // Common reservation times
-    const times = [
-        '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-        '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
-    ];
+    const allTimes = generateTimeSlots();
 
-    // Create array of dates for the next 7 days
+    const isTodaySelected = (() => {
+        const selected = new Date(`${formData.date}T00:00:00`);
+        return selected.getFullYear() === now.getFullYear() &&
+               selected.getMonth() === now.getMonth() &&
+               selected.getDate() === now.getDate();
+    })();
+
+    const times = allTimes.filter(time => {
+        if (!isTodaySelected) return true;
+        const [h, m] = time.split(':').map(Number);
+        return h > now.getHours() || (h === now.getHours() && m >= now.getMinutes());
+    });
+
     const dates = [];
     for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
         const formattedDate = date.toISOString().split('T')[0];
         const displayDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         dates.push({ value: formattedDate, label: displayDate });
@@ -144,6 +163,7 @@ const handleChange = (e) => {
 };
 
 // Handle search form submission
+// Handle search form submission
 const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -152,8 +172,8 @@ const handleSubmit = async (e) => {
         console.log('Searching with params:', formData);
         const results = await getRestaurantAvailability(formData);
 
-        // Group results by restaurant_id
         const grouped = {};
+
         for (const r of results) {
             if (!grouped[r.restaurant_id]) {
                 grouped[r.restaurant_id] = {
@@ -167,21 +187,27 @@ const handleSubmit = async (e) => {
                     maps_url: r.maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.restaurant_name)}+${encodeURIComponent(r.city)}`,
                     image: r.image || `https://source.unsplash.com/featured/?restaurant,${r.cuisine}`,
                     description: r.description || `Enjoy a wonderful ${r.cuisine} dining experience in ${r.city}.`,
-                    availableTimes: []  // Initialize here
+                    availableTimes: new Map() // use Map to avoid duplicates
                 };
             }
 
-            // Only push once
-            grouped[r.restaurant_id].availableTimes.push({
-                time: r.available_time,
-                table_id: r.table_id
-            });
+            // Only add time once (ignore multiple table_ids at the same time)
+            if (!grouped[r.restaurant_id].availableTimes.has(r.available_time)) {
+                grouped[r.restaurant_id].availableTimes.set(r.available_time, {
+                    time: r.available_time,
+                    table_id: r.table_id
+                });
+            }
         }
 
-        const mappedResults = Object.values(grouped);
+        // Convert Map to array for rendering
+        const mappedResults = Object.values(grouped).map((restaurant) => ({
+            ...restaurant,
+            availableTimes: Array.from(restaurant.availableTimes.values())
+        }));
+
         setSearchResults(mappedResults);
         setShowResults(true);
-
     } catch (err) {
         console.error('Search error:', err);
     } finally {
@@ -210,6 +236,7 @@ const renderRestaurantCard = (restaurant) => {
 
                 <div className="restaurant-details">
                     <h3>{restaurant.name}</h3>
+                    <p className="cuisine">🍽️ {restaurant.cuisine}</p>
                     <div className="rating">
                         {'★'.repeat(Math.floor(restaurant.rating))}{restaurant.rating % 1 >= 0.5 ? '½' : ''}
                         {'☆'.repeat(5 - Math.ceil(restaurant.rating))}
