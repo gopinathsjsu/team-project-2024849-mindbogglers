@@ -1,7 +1,7 @@
 # 🍽️ BookTable - Restaurant Reservation System
 
 <div align="center">
-  <img src="https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/frontend/public/Restaurant%20image.jpg" alt="BookTable Banner" width="100%">
+  <img src="(https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/Homepage_1.png)" alt="BookTable Banner" width="100%">
 </div>
 Image source: expedia.com
 
@@ -170,7 +170,6 @@ Project journal, UI wireframes, Diagrams: Prepared the scrum documentations.
 ## 📸 Screenshots
 
 ### Home Page
-![Home Page](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/Homepage_1.png)
 
 ![Home Page](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/HomePage_2.png)
 
