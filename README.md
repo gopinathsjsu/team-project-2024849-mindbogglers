@@ -169,19 +169,24 @@ Project journal, UI wireframes, Diagrams: Prepared the scrum documentations.
   
 ## 📸 Screenshots
 
+### Home Page
+![Home Page](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/Homepage_1.png)
+
+![Home Page](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/HomePage_2.png)
+
 ### Customer Interface
 ![Search Restaurants](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/SearchRestaurant.png)
 *Users can search for restaurants based on various criteria*
 
-![Restaurant Details](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/docs/screenshots/details.png)
+![Restaurant Details](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/available_restaurant.png)
 *Detailed view of restaurant information with booking options*
 
-### Management Interface
-![Restaurant Dashboard](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/docs/screenshots/dashboard.png)
+### Manage Interface
+![Restaurant Dashboard](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/manager_dashboard.png)
 *Restaurant managers can view and manage their bookings*
 
 ### Admin Interface
-![Admin Analytics](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/docs/screenshots/analytics.png)
+![Admin Analytics](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/admin_dashboard.png)
 *Administrators can view platform usage analytics*
 
 
