@@ -183,7 +183,7 @@ Project journal, UI wireframes, Diagrams: Prepared the scrum documentations.
 *Restaurant managers can view and manage their bookings*
 
 ### Admin Interface
-![Admin Analytics](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/admin_dashboard.png)
+![Admin Analytics](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/admin_dashboard_approve_Remove.png)
 *Administrators can view platform usage analytics*
 
 
