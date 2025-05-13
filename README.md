@@ -34,7 +34,7 @@ BookTable is a comprehensive restaurant reservation platform inspired by OpenTab
 
 - **Frontend**: React.js with Material UI components
 - **Backend**: FastAPI (Python)
-- **Database**: MySQL
+- **Database**: SQLite
 - **Deployment**: AWS (EC2 Auto-scaling Cluster with Load Balancer)
 - **Authentication**: JWT-based authentication
 - **Maps Integration**: Google Maps API
@@ -48,15 +48,15 @@ Our application follows a microservices architecture pattern:
 
 1. **Web Layer**: React.js frontend application
 2. **API Layer**: FastAPI backend services
-3. **Data Layer**: MySQL database
+3. **Data Layer**: SQLite database
 4. **Infrastructure**: AWS cloud deployment with auto-scaling
 
 ## 📋 Installation & Setup
 
 ### Prerequisites
-- Node.js (v14+)
+
 - Python (v3.8+)
-- MySQL
+- SQLite
 - AWS CLI (for deployment)
 
 ### Local Development Setup
@@ -82,8 +82,8 @@ Our application follows a microservices architecture pattern:
 
 4. **Database Setup**
     ```bash
-    # Configure your MySQL database
-    mysql -u root -p
+    # Configure your SQLite database
+    SQLite -u root -p
     CREATE DATABASE booktable;
     # Run the migration scripts in backend/database/migrations
 
@@ -92,8 +92,7 @@ Our application follows a microservices architecture pattern:
 Our application is deployed on AWS with the following components:
 - EC2 instances in an auto-scaling group
 - Elastic Load Balancer for traffic distribution
-- RDS for MySQL database hosting
-- S3 for static content storage
+- RDS for SQLite database hosting
 - CloudFront for content delivery
 
 
@@ -101,7 +100,7 @@ Our application is deployed on AWS with the following components:
 
 We follow Agile methodologies with Scrum practices:
 - Weekly sprint planning and retrospectives
-- Task tracking via GitHub Projects
+- Task tracking
 - XP Core Values: Communication and Feedback
 
 ## 📝 API Documentation
