@@ -170,7 +170,7 @@ Project journal, UI wireframes, Diagrams: Prepared the scrum documentations.
 ## 📸 Screenshots
 
 ### Customer Interface
-![Search Restaurants](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/docs/screenshots/search.png)
+![Search Restaurants](https://github.com/gopinathsjsu/team-project-2024849-mindbogglers/blob/main/UI%20Screenshot/SearchRestaurant.png)
 *Users can search for restaurants based on various criteria*
 
 ![Restaurant Details](https://raw.githubusercontent.com/syedanida/BookTable_demo/main/docs/screenshots/details.png)
