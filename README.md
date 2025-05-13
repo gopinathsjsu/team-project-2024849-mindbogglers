@@ -150,6 +150,8 @@ API Development: Created RESTful API endpoints for restaurant management, bookin
 
 Authentication System: Implemented the JWT-based authentication system
 
+Integrated email service (e.g., SMTP) to send booking confirmations.
+
 ### Harshavardhan:
 
 DevOps & Deployment: Configured the AWS infrastructure (EC2, Load Balancer, RDS)
